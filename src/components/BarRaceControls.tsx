@@ -10,6 +10,8 @@ export interface BarRaceControlsProps {
   totalRounds: number;
   onSeek: (round: number) => void;
   disabled?: boolean;
+  speed: number;
+  onCycleSpeed: () => void;
 }
 
 export function BarRaceControls({
@@ -20,6 +22,8 @@ export function BarRaceControls({
   totalRounds,
   onSeek,
   disabled = false,
+  speed,
+  onCycleSpeed,
 }: BarRaceControlsProps) {
   return (
     <div className="flex items-center gap-3">
@@ -31,6 +35,15 @@ export function BarRaceControls({
         disabled={disabled && !isPlaying}
       >
         {isPlaying ? "Pause" : "Play"}
+      </button>
+      <button
+        type="button"
+        className="px-3 py-1 rounded border border-neutral-300 dark:border-neutral-700 text-sm"
+        onClick={onCycleSpeed}
+        aria-label="Change speed"
+        disabled={disabled}
+      >
+        {`${speed}x`}
       </button>
       <div className="flex-1 flex items-center gap-2">
         <input

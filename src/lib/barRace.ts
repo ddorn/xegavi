@@ -12,6 +12,8 @@ export type BarRaceFrame = Record<string, RoundModelWithBest>;
 /**
  * Compute per-round frames keyed by model name, augmenting each entry with
  * running-best fields (bestRoundIndex, bestScore, bestMove, bestTokenScores).
+ *
+ * Throws an explicit error if a model is missing in any round.
  */
 export function computeBarRaceFrames(data: Dataset): Array<BarRaceFrame> {
   const roundsUnstructured = data.rounds;
@@ -27,8 +29,10 @@ export function computeBarRaceFrames(data: Dataset): Array<BarRaceFrame> {
     const frame: BarRaceFrame = {};
 
     for (const model of modelNames) {
-      // Assumes each round contains an entry for each model
-      const current = roundList.find((r) => r.model === model)!;
+      const current = roundList.find((r) => r.model === model);
+      if (!current) {
+        throw new Error(`Dataset validation error: missing model '${model}' at round index ${i}`);
+      }
 
       const prevBestIdx = bestIdxByModel[model] ?? 0;
       const prevBestRound = roundsUnstructured[prevBestIdx];

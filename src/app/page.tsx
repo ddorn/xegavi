@@ -3,10 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { DatasetSchema, type Dataset } from "@/lib/types";
 import { BarRace } from "@/components/BarRace";
+import { TokenScoresBox } from "@/components/TokenScoresBox";
+import type { RoundModelWithBest } from "@/lib/barRace";
 
 export default function Home() {
   const [data, setData] = useState<Dataset | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [active, setActive] = useState<RoundModelWithBest | null>(null);
 
   const onFile = useCallback(async (file: File) => {
     try {
@@ -63,8 +66,30 @@ export default function Home() {
           <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
         )}
         {data && (
-          <div className="border rounded-md p-3">
-            <BarRace data={data} topN={10} stepMs={1000} autoplay barHeight={36} />
+          <div className="flex flex-col gap-3">
+            <div className="border rounded-md p-3">
+              <BarRace
+                data={data}
+                topN={10}
+                stepMs={1000}
+                autoplay
+                barHeight={36}
+                onActiveItemChange={setActive}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="text-sm ">
+                {active ? (
+                  <span>
+                    Showing per-tokens scores for <strong>{active.nice_model ?? active.model}</strong> — score {active.bestScore.toFixed(2)}
+                  </span>
+                ) : (
+                  <span>No selection yet.</span>
+                )}
+              </div>
+              <TokenScoresBox tokenScores={active?.bestTokenScores ?? null} />
+            </div>
           </div>
         )}
       </div>
