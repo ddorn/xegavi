@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { pickTextColor } from "@/lib/colors";
 
 export interface BarProps {
