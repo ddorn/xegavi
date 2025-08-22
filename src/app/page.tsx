@@ -45,7 +45,7 @@ export default function Home() {
     <div className="min-h-screen p-6 sm:p-10">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
         <header className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Bar Race (Prototype)</h1>
+          <h1 className="text-xl font-semibold">Xentlab race</h1>
           <label className="cursor-pointer inline-flex items-center gap-3">
             <input
               type="file"

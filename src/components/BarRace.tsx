@@ -96,6 +96,7 @@ export function BarRace({ data, topN = 10, stepMs = 1000, autoplay = true, barHe
             barHeight={barHeight}
             logo={<Logo src={it.logo} size={barHeight} alt={`${it.company} logo`} />}
             onClick={() => setSelectedModel(it.model)}
+            transitionDurationSec={effectiveStepMs / 1000}
           />
         );
       })}

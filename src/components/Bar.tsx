@@ -14,16 +14,17 @@ export interface BarProps {
   barHeight: number;
   logo?: React.ReactNode;
   onClick?: () => void;
+  transitionDurationSec?: number;
 }
 
-export function Bar({ idx, model, niceModel, move, score, widthPct, color, barHeight, logo, onClick }: BarProps) {
+export function Bar({ idx, model, niceModel, move, score, widthPct, color, barHeight, logo, onClick, transitionDurationSec = 1 }: BarProps) {
   const textColor = pickTextColor(color);
   const width = `${Math.max(0, Math.min(100, widthPct)).toFixed(4)}%`;
   return (
     <motion.div
       layout
       initial={false}
-      transition={{ duration: 1, ease: "easeInOut" }}
+      transition={{ duration: transitionDurationSec, ease: "easeInOut" }}
       className="flex items-center gap-2 w-full"
       style={{ height: barHeight }}
       onClick={(e) => {
@@ -39,7 +40,7 @@ export function Bar({ idx, model, niceModel, move, score, widthPct, color, barHe
           initial={{ width, opacity: 0 }}
           animate={{ width, opacity: 1 }}
           key={`${model}-inner`}
-          transition={{ duration: 1, ease: "easeInOut" }}
+          transition={{ duration: transitionDurationSec, ease: "easeInOut" }}
           style={{ backgroundColor: color, height: barHeight }}
           className="overflow-hidden flex justify-between items-center"
         >
