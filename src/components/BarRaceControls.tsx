@@ -29,7 +29,7 @@ export function BarRaceControls({
     <div className="flex items-center gap-3">
       <button
         type="button"
-        className="px-3 py-1 rounded border border-neutral-300 dark:border-neutral-700 text-sm"
+        className="button"
         onClick={onTogglePlay}
         aria-label={isPlaying ? "Pause" : "Play"}
         disabled={disabled && !isPlaying}
@@ -38,7 +38,7 @@ export function BarRaceControls({
       </button>
       <button
         type="button"
-        className="px-3 py-1 rounded border border-neutral-300 dark:border-neutral-700 text-sm"
+        className="button"
         onClick={onCycleSpeed}
         aria-label="Change speed"
         disabled={disabled}

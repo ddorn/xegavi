@@ -7,7 +7,7 @@ import { Bar } from "@/components/Bar";
 import { Logo } from "@/components/Logo";
 import { BarRaceControls } from "@/components/BarRaceControls";
 import { computeBarRaceFrames } from "@/lib/barRace";
-import { useThemePreference } from "@/lib/useThemePreference";
+import { useTheme } from "next-themes";
 import type { RoundModelWithBest } from "@/lib/barRace";
 
 export interface BarRaceProps {
@@ -19,15 +19,12 @@ export interface BarRaceProps {
   onActiveItemChange?: (item: RoundModelWithBest | null) => void;
 }
 
-export function BarRace({ data, topN = 10, stepMs = 1000, autoplay = true, barHeight = 36, onActiveItemChange }: BarRaceProps) {
+export function BarRace({ data, topN = 10, stepMs = 1000, autoplay = true, onActiveItemChange }: BarRaceProps) {
   const [round, setRound] = useState(0);
   const [isPlaying, setIsPlaying] = useState(autoplay);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const frames = useMemo(() => computeBarRaceFrames(data), [data]);
   const nRounds = frames.length;
-
-  // Basic theme detection via media query (matches website behavior when using Tailwind dark)
-  const theme = useThemePreference();
 
   // Speed control
   const SPEED_STEPS = [0.25, 0.5, 1, 1.5, 2] as const;
@@ -81,7 +78,7 @@ export function BarRace({ data, topN = 10, stepMs = 1000, autoplay = true, barHe
       />
 
       {sorted.map((it, idx) => {
-        const color = colorForCompany(it.company, theme);
+        const color = colorForCompany(it.company);
         const widthPct = maxScore > 0 ? (it.bestScore / maxScore) * 100 : 0;
         return (
           <Bar
@@ -93,8 +90,8 @@ export function BarRace({ data, topN = 10, stepMs = 1000, autoplay = true, barHe
             score={it.bestScore}
             widthPct={widthPct}
             color={color}
-            barHeight={barHeight}
-            logo={<Logo src={it.logo} size={barHeight} alt={`${it.company} logo`} />}
+            barHeight={36}
+            logo={<Logo src={it.logo} size={36} alt={`${it.company} logo`} />}
             onClick={() => setSelectedModel(it.model)}
             transitionDurationSec={effectiveStepMs / 1000}
           />

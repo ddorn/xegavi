@@ -58,7 +58,7 @@ export default function Home() {
                   if (f) onFile(f);
                 }}
               />
-              <span className="rounded-md border px-3 py-1.5 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-900">Load JSON</span>
+              <span className="button">Load JSON</span>
             </label>
             <ThemeToggle />
           </div>
@@ -77,7 +77,6 @@ export default function Home() {
                 topN={10}
                 stepMs={1000}
                 autoplay
-                barHeight={36}
                 onActiveItemChange={setActive}
               />
             </div>

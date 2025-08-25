@@ -1,21 +1,21 @@
-export const COMPANY_COLORS: Record<string, { light: string; dark: string }> = {
-  OpenAI: { light: "#10A37F", dark: "#0B7D61" },
-  Anthropic: { light: "#E39981", dark: "#E39981" },
-  Google: { light: "#4285F4", dark: "#2E6BD8" },
-  xAI: { light: "#000000", dark: "#111111" },
-  Meta: { light: "#0866FF", dark: "#0750C9" },
-  Mistral: { light: "#FF6B00", dark: "#CC5600" },
-  Alibaba: { light: "#FF6A00", dark: "#CC5500" },
-  DeepSeek: { light: "#6A5ACD", dark: "#5249A3" },
-  Reka: { light: "#6C63FF", dark: "#4E49CC" },
-  Cohere: { light: "#FF6F3D", dark: "#D7582F" },
-  Microsoft: { light: "#737373", dark: "#595959" },
-  Unknown: { light: "#888888", dark: "#666666" },
+export const COMPANY_COLORS: Record<string, string> = {
+  OpenAI: "#10A37F",
+  Anthropic: "#E39981",
+  Google: "#4285F4",
+  xAI: "#000000",
+  Meta: "#0866FF",
+  Mistral: "#FF6B00",
+  Alibaba: "#FF6A00",
+  DeepSeek: "#6A5ACD",
+  Reka: "#6C63FF",
+  Cohere: "#FF6F3D",
+  Microsoft: "#737373",
+  Unknown: "#888888",
 };
 
-export function colorForCompany(company: string, theme: "light" | "dark"): string {
+export function colorForCompany(company: string): string {
   const c = COMPANY_COLORS[company] ?? COMPANY_COLORS["Unknown"];
-  return theme === "dark" ? c.dark : c.light;
+  return c;
 }
 
 export function pickTextColor(bgHex: string): string {

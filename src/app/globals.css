@@ -1,2 +1,6 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+
+.button {
+    @apply rounded-md border px-3 py-1 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800;
+}

@@ -32,27 +32,27 @@ export function Bar({ idx, model, niceModel, move, score, widthPct, color, barHe
         onClick?.();
       }}
     >
-      <div style={{ width: barHeight, height: barHeight }} className="shrink-0 flex items-center justify-center">
+      <div style={{ width: barHeight, height: barHeight }} className="shrink-0 flex items-center justify-center dark:bg-white rounded-lg">
         {logo}
       </div>
-      <div className="relative grow border border-transparent" style={{ height: barHeight }}>
+      <div className="grow min-w-0" style={{ height: barHeight }}>
         <motion.div
           initial={{ width, opacity: 0 }}
           animate={{ width, opacity: 1 }}
           key={`${model}-inner`}
           transition={{ duration: transitionDurationSec, ease: "easeInOut" }}
           style={{ backgroundColor: color, height: barHeight }}
-          className="overflow-hidden flex justify-between items-center"
+          className="flex justify-between items-center"
         >
           <div
-            className="px-3 whitespace-nowrap overflow-hidden text-ellipsis flex items-center h-full"
+            className="px-2 sm:px-3 whitespace-nowrap overflow-hidden flex items-center h-full text-xs sm:text-sm"
             style={{ color: textColor }}
             title={`${niceModel}: ${move}`}
           >
             <span className="font-black">{niceModel}</span>
-            <span className="ml-4 opacity-90">{move}</span>
+            <span className="ml-2 sm:ml-4 opacity-90 overflow-hidden text-ellipsis">{move}</span>
           </div>
-          <div className="mr-2 font-semibold" style={{ color: textColor }}>
+          <div className="mx-2 font-semibold text-xs sm:text-sm" style={{ color: textColor }}>
             {Math.round(score)}
             </div>
           </motion.div>
