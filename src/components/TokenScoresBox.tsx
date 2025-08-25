@@ -47,19 +47,19 @@ function scoreToColor(value: number): string {
 export function TokenScoresBox({ tokenScores }: TokenScoresBoxProps) {
   if (!tokenScores) {
     return (
-      <div className="text-sm text-neutral-600 dark:text-neutral-300">
+      <div className="text-sm">
         No token breakdown available.
       </div>
     );
   }
 
   return (
-    <div className="text-sm leading-6 border border-neutral-200 dark:border-neutral-800 rounded p-3 whitespace-pre-wrap">
+    <div className="text-sm leading-6 whitespace-pre-wrap text-neutral-900">
       {tokenScores.map(([tok, score], i) => (
         <span
           key={i}
           title={score.toFixed(2)}
-          style={{ backgroundColor: scoreToColor(score), borderRadius: 2 }}
+          style={{ backgroundColor: scoreToColor(score) }}
           className="px-0.5"
         >
           {tok}

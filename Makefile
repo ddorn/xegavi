@@ -40,6 +40,7 @@ rsync:
 	rsync -az --delete $(DIST_DIR)/ $(HOST):$(DEST)/
 
 deploy: install build prepare-dist rsync
+	ssh $(HOST) 'systemctl restart $(APP).service && journalctl -u $(APP).service -n 100 -f'
 
 put-env:
 	test -f $(ENV_LOCAL) && rsync -az $(ENV_LOCAL) $(HOST):$(ENV_REMOTE) || echo "Skip: $(ENV_LOCAL) not found"
@@ -49,10 +50,10 @@ put-load:
 
 service-install:
 	scp $(ROOT)/$(APP).service $(HOST):/etc/systemd/system/$(APP).service
-	ssh $(HOST) 'sudo systemctl daemon-reload && sudo systemctl enable --now $(APP).service'
+	ssh $(HOST) 'systemctl daemon-reload && systemctl enable --now $(APP).service && journalctl -u $(APP).service -n 100 -f'
 
 restart:
-	ssh $(HOST) 'sudo systemctl restart $(APP).service'
+	ssh $(HOST) 'systemctl restart $(APP).service && journalctl -u $(APP).service -n 100 -f'
 
 status:
 	ssh $(HOST) 'systemctl status $(APP).service --no-pager'

@@ -5,6 +5,7 @@ import { DatasetSchema, type Dataset } from "@/lib/types";
 import { BarRace } from "@/components/BarRace";
 import { TokenScoresBox } from "@/components/TokenScoresBox";
 import type { RoundModelWithBest } from "@/lib/barRace";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Home() {
   const [data, setData] = useState<Dataset | null>(null);
@@ -46,18 +47,21 @@ export default function Home() {
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
         <header className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Xentlab race</h1>
-          <label className="cursor-pointer inline-flex items-center gap-3">
-            <input
-              type="file"
-              accept="application/json"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onFile(f);
-              }}
-            />
-            <span className="rounded-md border px-3 py-1.5 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-900">Load JSON</span>
-          </label>
+          <div className="flex items-center gap-2">
+            <label className="cursor-pointer inline-flex items-center gap-3">
+              <input
+                type="file"
+                accept="application/json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onFile(f);
+                }}
+              />
+              <span className="rounded-md border px-3 py-1.5 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-900">Load JSON</span>
+            </label>
+            <ThemeToggle />
+          </div>
         </header>
         {error && (
           <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>
@@ -88,7 +92,9 @@ export default function Home() {
                   <span>No selection yet.</span>
                 )}
               </div>
-              <TokenScoresBox tokenScores={active?.bestTokenScores ?? null} />
+              <div className="border rounded-md p-3">
+                <TokenScoresBox tokenScores={active?.bestTokenScores ?? null} />
+              </div>
             </div>
           </div>
         )}
