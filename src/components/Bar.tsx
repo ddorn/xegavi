@@ -18,10 +18,7 @@ export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transi
   const textColor = pickTextColor(item.color);
   const width = `${Math.max(0, Math.min(100, widthPct)).toFixed(4)}%`;
   return (
-    <motion.div
-      layout
-      initial={false}
-      transition={{ duration: transitionDurationSec, ease: "easeInOut" }}
+    <div
       className="flex items-center gap-2 w-full"
       style={{ height: barHeight }}
       onClick={(e) => {
@@ -54,6 +51,6 @@ export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transi
             </div>
           </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 }
