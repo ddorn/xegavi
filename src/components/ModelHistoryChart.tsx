@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import React, { useMemo } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, ReferenceLine, Label, Tooltip } from "recharts";
 
@@ -29,6 +30,21 @@ export function ModelHistoryChart({ history, roundIndex, height = 140, onRoundCh
 
   if (history.length === 0) return null;
 
+  const isDark = useTheme().theme === "dark";
+
+  // Without this, the XAxis blink evry round update.
+  // I can't figure out why, so we memoize it, which works.
+  const MemoizedXAxis = useMemo(() => (
+    <XAxis
+      dataKey="round"
+      tickLine={false}
+      axisLine={false}
+      tick={{ fontSize: 11, fill: isDark ? "white" : "black", opacity: 0.7 }}
+      tickFormatter={(r: number | string) => String(Number(r) + 1)}
+      allowDecimals={false}
+    />
+  ), [isDark]);
+
   return (
     <div style={{ width: "100%", height }}>
       <ResponsiveContainer>
@@ -40,14 +56,7 @@ export function ModelHistoryChart({ history, roundIndex, height = 140, onRoundCh
             if (typeof label === "number") onRoundChange?.(label);
           }}
         >
-          <XAxis
-            dataKey="round"
-            tickLine={false}
-            axisLine={false}
-            tick={{ fontSize: 11, opacity: 0.7 }}
-            tickFormatter={(r: number | string) => String(Number(r) + 1)}
-            allowDecimals={false}
-          />
+          {MemoizedXAxis}
           <YAxis hide domain={["auto", "auto"]} />
           <Line
             type="monotone"

@@ -43,9 +43,6 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
 
   const containerHeight = Math.max(0, topN * barHeight + Math.max(0, topN - 1) * rowGapPx);
 
-  console.log('idsSortedByValue', idsSortedByValue);
-  console.log('idsSortedByName', idsSortedByName);
-
   return (
     <div
       className="w-full"
