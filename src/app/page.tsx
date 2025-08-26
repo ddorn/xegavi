@@ -1,16 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DatasetSchema, type Dataset } from "@/lib/types";
 import { BarRace } from "@/components/BarRace";
 import { TokenScoresBox } from "@/components/TokenScoresBox";
 import type { RoundModelWithBest } from "@/lib/barRace";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { buildRace } from "@/lib/barRace";
 
 export default function Home() {
   const [data, setData] = useState<Dataset | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [active, setActive] = useState<RoundModelWithBest | null>(null);
+  // removed unused active state
 
   const onFile = useCallback(async (file: File) => {
     try {
@@ -41,6 +42,24 @@ export default function Home() {
       }
     })();
   }, []);
+
+  const race = useMemo(() => (data ? buildRace(data) : { frames: [], augmented: [] }), [data]);
+
+  const [selection, setSelection] = useState<{ id: string | null; round: number; }>({ id: null, round: 0 });
+
+  // useCallback to avoid re-rendering BarRace in a loop when the selection changes
+  const handleSelectedIdChange = useCallback((id: string | null, round: number) => {
+    setSelection((prev) => (prev.id === id && prev.round === round ? prev : { id, round }));
+  }, []);
+
+  const activeItem: RoundModelWithBest | null = useMemo(() => {
+    const rounds = race.augmented.length;
+    if (rounds === 0) return null;
+    const round = Math.min(Math.max(selection.round, 0), rounds - 1);
+    const id = selection.id ?? Object.keys(race.augmented[round] ?? {})[0] ?? null;
+    if (!id) return null;
+    return race.augmented[round]?.[id] ?? null;
+  }, [race, selection]);
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
@@ -73,26 +92,26 @@ export default function Home() {
           <div className="flex flex-col gap-3">
             <div className="border rounded-md p-3">
               <BarRace
-                data={data}
+                frames={race.frames}
                 topN={10}
                 stepMs={1000}
                 autoplay
-                onActiveItemChange={setActive}
+                onSelectedIdChange={handleSelectedIdChange}
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <div className="text-sm ">
-                {active ? (
+                {activeItem ? (
                   <span>
-                    Showing per-tokens scores for <strong>{active.nice_model ?? active.model}</strong> — score {active.bestScore.toFixed(2)}
+                    Showing per-tokens scores for <strong>{activeItem.nice_model ?? activeItem.model}</strong> — score {activeItem.bestScore.toFixed(2)}
                   </span>
                 ) : (
                   <span>No selection yet.</span>
                 )}
               </div>
               <div className="border rounded-md p-3">
-                <TokenScoresBox tokenScores={active?.bestTokenScores ?? null} />
+                <TokenScoresBox tokenScores={activeItem?.bestTokenScores ?? null} />
               </div>
             </div>
           </div>

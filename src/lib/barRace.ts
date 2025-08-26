@@ -1,4 +1,5 @@
 import type { Dataset, RoundModel, TokenScores } from "@/lib/types";
+import { colorForCompany } from "@/lib/colors";
 
 export interface RoundModelWithBest extends RoundModel {
   bestRoundIndex: number;
@@ -7,7 +8,18 @@ export interface RoundModelWithBest extends RoundModel {
   bestTokenScores: TokenScores | null;
 }
 
-export type BarRaceFrame = Record<string, RoundModelWithBest>;
+export type AugmentedFrame = Record<string, RoundModelWithBest>;
+
+export type BarRaceItem = {
+  id: string;
+  name: string;
+  description: string;
+  value: number;
+  color: string;
+  iconSrc: string;
+};
+
+export type BarRaceFrame = BarRaceItem[];
 
 /**
  * Compute per-round frames keyed by model name, augmenting each entry with
@@ -15,18 +27,18 @@ export type BarRaceFrame = Record<string, RoundModelWithBest>;
  *
  * Throws an explicit error if a model is missing in any round.
  */
-export function computeBarRaceFrames(data: Dataset): Array<BarRaceFrame> {
+export function augmentDatasetWithBest(data: Dataset): Array<AugmentedFrame> {
   const roundsUnstructured = data.rounds;
   if (roundsUnstructured.length === 0) return [];
 
   const modelNames = roundsUnstructured[0].map((r) => r.model);
 
-  const frames: Array<BarRaceFrame> = [];
+  const frames: Array<AugmentedFrame> = [];
   const bestIdxByModel: Record<string, number> = {};
 
   for (let i = 0; i < roundsUnstructured.length; i++) {
     const roundList = roundsUnstructured[i];
-    const frame: BarRaceFrame = {};
+    const frame: AugmentedFrame = {};
 
     for (const model of modelNames) {
       const current = roundList.find((r) => r.model === model);
@@ -58,4 +70,23 @@ export function computeBarRaceFrames(data: Dataset): Array<BarRaceFrame> {
   }
 
   return frames;
+}
+
+/**
+ * Adapter that turns a Dataset into both display frames and augmented frames.
+ * Keeps Bar components domain-agnostic while centralizing mapping logic.
+ */
+export function buildRace(data: Dataset): { frames: BarRaceFrame[]; augmented: AugmentedFrame[] } {
+  const augmented = augmentDatasetWithBest(data);
+  const frames: BarRaceFrame[] = augmented.map((frame) =>
+    Object.values(frame).map((it) => ({
+      id: it.model,
+      name: it.nice_model ?? it.model,
+      description: it.bestMove,
+      value: it.bestScore,
+      color: colorForCompany(it.company),
+      iconSrc: it.logo ?? "",
+    }))
+  );
+  return { frames, augmented };
 }

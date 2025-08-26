@@ -9,9 +9,8 @@ export interface BarRaceControlsProps {
   maxRound: number;
   totalRounds: number;
   onSeek: (round: number) => void;
-  disabled?: boolean;
   speed: number;
-  onCycleSpeed: () => void;
+  onSetSpeed: (speed: number) => void;
 }
 
 export function BarRaceControls({
@@ -21,10 +20,12 @@ export function BarRaceControls({
   maxRound,
   totalRounds,
   onSeek,
-  disabled = false,
   speed,
-  onCycleSpeed,
+  onSetSpeed,
 }: BarRaceControlsProps) {
+  const SPEED_STEPS = [0.25, 0.5, 1, 1.5, 2] as const;
+  const currentIndex = Math.max(0, SPEED_STEPS.indexOf((speed as typeof SPEED_STEPS[number]) ?? 1));
+  const cycle = () => onSetSpeed(SPEED_STEPS[(currentIndex + 1) % SPEED_STEPS.length]);
   return (
     <div className="flex items-center gap-3">
       <button
@@ -32,16 +33,14 @@ export function BarRaceControls({
         className="button"
         onClick={onTogglePlay}
         aria-label={isPlaying ? "Pause" : "Play"}
-        disabled={disabled && !isPlaying}
       >
         {isPlaying ? "Pause" : "Play"}
       </button>
       <button
         type="button"
         className="button"
-        onClick={onCycleSpeed}
+        onClick={cycle}
         aria-label="Change speed"
-        disabled={disabled}
       >
         {`${speed}x`}
       </button>
@@ -55,7 +54,6 @@ export function BarRaceControls({
           onChange={(e) => onSeek(Number(e.target.value))}
           className="w-full"
           aria-label="Round"
-          disabled={disabled}
         />
         <span className="tabular-nums text-sm min-w-[4.5rem] text-right">
           {totalRounds === 0 ? "0/0" : `${Math.min(round, maxRound) + 1}/${totalRounds}`}
