@@ -5,7 +5,7 @@ export interface RoundModelWithBest extends RoundModel {
   bestRoundIndex: number;
   bestScore: number;
   bestMove: string;
-  bestTokenScores: TokenScores | null;
+  bestTokenScores: TokenScores;
 }
 
 export type AugmentedFrame = Record<string, RoundModelWithBest>;
@@ -62,7 +62,7 @@ export function augmentDatasetWithBest(data: Dataset): Array<AugmentedFrame> {
         bestRoundIndex: bestIdx,
         bestScore: best.score,
         bestMove: best.move,
-        bestTokenScores: best.token_scores ?? null,
+        bestTokenScores: best.token_scores,
       };
     }
 
@@ -89,4 +89,17 @@ export function buildRace(data: Dataset): { frames: BarRaceFrame[]; augmented: A
     }))
   );
   return { frames, augmented };
+}
+
+/**
+ * Pick the two models with the highest bestScore at the final round.
+ * Returns a tuple of model ids. If fewer than two exist, the second may be undefined.
+ */
+export function getFinalistsByBestScore(augmented: AugmentedFrame[]): [string | undefined, string | undefined] {
+  if (augmented.length < 2) return [undefined, undefined];
+  const last = augmented[augmented.length - 1];
+  const sorted = Object.values(last)
+    .sort((a, b) => b.bestScore - a.bestScore)
+    .map((it) => it.model);
+  return [sorted[0], sorted[1]];
 }

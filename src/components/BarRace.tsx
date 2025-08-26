@@ -1,41 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { BarRaceFrame } from "@/lib/barRace";
 import { Bar } from "@/components/Bar";
 import { Logo } from "@/components/Logo";
-import { BarRaceControls } from "@/components/BarRaceControls";
 
 export interface BarRaceProps {
   frames: BarRaceFrame[];
+  round: number;
   topN?: number;
-  stepMs?: number;
-  autoplay?: boolean;
   barHeight?: number;
+  transitionDurationSec?: number;
   onSelectedIdChange?: (id: string | null, round: number) => void;
 }
 
-export function BarRace({ frames, topN = 10, stepMs = 1000, autoplay = true, barHeight = 36, onSelectedIdChange }: BarRaceProps) {
-  const [round, setRound] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(autoplay);
+export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDurationSec = 0.6, onSelectedIdChange }: BarRaceProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const nRounds = frames.length;
-
-  // Speed control value (steps owned by controls)
-  const [speed, setSpeed] = useState<number>(1);
-  const effectiveStepMs = Math.max(1, Math.round(stepMs / (speed || 1)));
-
-  useEffect(() => {
-    if (!isPlaying || nRounds === 0) return;
-    const id = setInterval(() => {
-      setRound((r) => (r + 1) % nRounds);
-    }, effectiveStepMs);
-    return () => clearInterval(id);
-  }, [isPlaying, effectiveStepMs, nRounds]);
+  const maxRound = Math.max(0, nRounds - 1);
+  const safeRound = Math.min(Math.max(0, round), maxRound);
 
   const { sorted, maxValue } = useMemo(() => {
-    const frame = frames[Math.min(round, Math.max(0, nRounds - 1))] ?? [];
+    const frame = frames[safeRound] ?? [];
     const arr = [...frame];
     arr.sort((a, b) => {
       if (b.value !== a.value) return b.value - a.value;
@@ -44,31 +31,15 @@ export function BarRace({ frames, topN = 10, stepMs = 1000, autoplay = true, bar
     const sliced = arr.slice(0, topN);
     const maxVal = sliced.reduce((m, it) => Math.max(m, it.value), 0);
     return { sorted: sliced, maxValue: maxVal };
-  }, [frames, round, nRounds, topN]);
-
-  const defaultId = sorted[0]?.id ?? null;
-  const activeId = selectedId ?? defaultId;
-  const maxRound = Math.max(0, nRounds - 1);
-
-  useEffect(() => {
-    onSelectedIdChange?.(activeId ?? null, round);
-  }, [onSelectedIdChange, activeId, round]);
+  }, [frames, safeRound, nRounds, topN]);
 
   return (
     <div className="w-full flex flex-col gap-4"
-      onClick={() => setSelectedId(null)}
+      onClick={() => {
+        setSelectedId(null);
+        onSelectedIdChange?.(null, safeRound);
+      }}
     >
-      <BarRaceControls
-        isPlaying={isPlaying}
-        onTogglePlay={() => setIsPlaying((p) => !p)}
-        round={round}
-        maxRound={maxRound}
-        totalRounds={nRounds}
-        onSeek={setRound}
-        speed={speed}
-        onSetSpeed={setSpeed}
-      />
-
       {sorted.map((it) => {
         const widthPct = maxValue > 0 ? (it.value / maxValue) * 100 : 0;
         return (
@@ -79,8 +50,11 @@ export function BarRace({ frames, topN = 10, stepMs = 1000, autoplay = true, bar
             barHeight={barHeight}
             selected={it.id === selectedId}
             logo={<Logo src={it.iconSrc} size={barHeight} alt={`${it.name} logo`} />}
-            onClick={() => setSelectedId(it.id)}
-            transitionDurationSec={effectiveStepMs / 1000}
+            onClick={() => {
+              setSelectedId(it.id);
+              onSelectedIdChange?.(it.id, safeRound);
+            }}
+            transitionDurationSec={transitionDurationSec}
           />
         );
       })}

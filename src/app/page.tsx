@@ -1,17 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DatasetSchema, type Dataset } from "@/lib/types";
+import { DatasetSchema, type Dataset, type Playback } from "@/lib/types";
 import { BarRace } from "@/components/BarRace";
-import { TokenScoresBox } from "@/components/TokenScoresBox";
 import type { RoundModelWithBest } from "@/lib/barRace";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { buildRace } from "@/lib/barRace";
+import { buildRace, getFinalistsByBestScore } from "@/lib/barRace";
+import { BarRaceControls } from "@/components/BarRaceControls";
+import { ModelRoundDetails } from "@/components/ModelRoundDetails";
 
 export default function Home() {
   const [data, setData] = useState<Dataset | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // removed unused active state
 
   const onFile = useCallback(async (file: File) => {
     try {
@@ -45,21 +45,62 @@ export default function Home() {
 
   const race = useMemo(() => (data ? buildRace(data) : { frames: [], augmented: [] }), [data]);
 
-  const [selection, setSelection] = useState<{ id: string | null; round: number; }>({ id: null, round: 0 });
+  const [playbackState, setPlaybackState] = useState<Playback>({ isPlaying: true, round: 0, speed: 1 });
 
-  // useCallback to avoid re-rendering BarRace in a loop when the selection changes
+  useEffect(() => {
+    setPlaybackState((s) => ({ ...s, round: Math.min(s.round, Math.max(0, race.frames.length - 1)) }));
+  }, [race.frames.length]);
+
+  useEffect(() => {
+    if (!playbackState.isPlaying || race.frames.length === 0) return;
+    const stepMs = 1000;
+    const effective = Math.max(1, Math.round(stepMs / (playbackState.speed || 1)));
+    const id = setInterval(() => {
+      setPlaybackState((s) => ({ ...s, round: (s.round + 1) % Math.max(1, race.frames.length) }));
+    }, effective);
+    return () => clearInterval(id);
+  }, [playbackState.isPlaying, playbackState.speed, race.frames.length]);
+
+  const [leftId, rightIdDefault] = useMemo(() => getFinalistsByBestScore(race.augmented), [race.augmented]);
+
+  useEffect(() => {
+    setPlaybackState((s) => ({ ...s, round: 0 }));
+  }, [data]);
+
+  // Right-column selection logic: follows clicked bar if present; otherwise defaults to second finalist;
+  // ensure it differs from left finalist.
+  const [clickedId, setClickedId] = useState<string | null>(null);
   const handleSelectedIdChange = useCallback((id: string | null, round: number) => {
-    setSelection((prev) => (prev.id === id && prev.round === round ? prev : { id, round }));
+    setClickedId(id);
+  }, []);
+  const handleRoundChange = useCallback((idx: number) => {
+    setPlaybackState((s) => ({ ...s, round: idx }));
   }, []);
 
-  const activeItem: RoundModelWithBest | null = useMemo(() => {
-    const rounds = race.augmented.length;
-    if (rounds === 0) return null;
-    const round = Math.min(Math.max(selection.round, 0), rounds - 1);
-    const id = selection.id ?? Object.keys(race.augmented[round] ?? {})[0] ?? null;
-    if (!id) return null;
-    return race.augmented[round]?.[id] ?? null;
-  }, [race, selection]);
+  const rightId = useMemo(() => {
+    if (!race.augmented.length) return null;
+    const fallback = rightIdDefault && rightIdDefault !== leftId ? rightIdDefault : (
+      // choose any different id from the last frame
+      Object.keys(race.augmented[race.augmented.length - 1] || {}).find((id) => id !== leftId) || null
+    );
+    if (clickedId && clickedId !== leftId) return clickedId;
+    return fallback;
+  }, [clickedId, rightIdDefault, leftId, race.augmented]);
+
+  const safeRound = Math.min(Math.max(0, playbackState.round), Math.max(0, race.augmented.length - 1));
+  const leftItem: RoundModelWithBest | null = leftId ? race.augmented[safeRound]?.[leftId] ?? null : null;
+  const rightItem: RoundModelWithBest | null = rightId ? race.augmented[safeRound]?.[rightId] ?? null : null;
+
+  const leftHistory = useMemo(() => {
+    if (!leftId || !race.augmented.length) return [] as number[];
+    return race.augmented.map((frame) => frame[leftId]!.score);
+  }, [race.augmented, leftId]);
+
+  const rightHistory = useMemo(() => {
+    if (!rightId || !race.augmented.length) return [] as number[];
+    return race.augmented.map((frame) => frame[rightId]!.score);
+  }, [race.augmented, rightId]);
+
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
@@ -91,29 +132,44 @@ export default function Home() {
         {data && (
           <div className="flex flex-col gap-3">
             <div className="border rounded-md p-3">
+              <BarRaceControls
+                playback={playbackState}
+                maxRound={Math.max(0, race.frames.length - 1)}
+                totalRounds={race.frames.length}
+                onPlaybackChange={setPlaybackState}
+              />
+            </div>
+
+            <div className="border rounded-md p-3">
               <BarRace
                 frames={race.frames}
                 topN={10}
-                stepMs={1000}
-                autoplay
+                round={playbackState.round}
+                transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1))}
                 onSelectedIdChange={handleSelectedIdChange}
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="text-sm ">
-                {activeItem ? (
-                  <span>
-                    Showing per-tokens scores for <strong>{activeItem.nice_model ?? activeItem.model}</strong> — score {activeItem.bestScore.toFixed(2)}
-                  </span>
-                ) : (
-                  <span>No selection yet.</span>
-                )}
+            {leftItem && rightItem && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="border rounded-md p-3">
+                  <ModelRoundDetails
+                    item={leftItem}
+                    currentRoundIndex={safeRound}
+                    history={leftHistory}
+                    onRoundChange={handleRoundChange}
+                  />
+                </div>
+                <div className="border rounded-md p-3">
+                  <ModelRoundDetails
+                    item={rightItem}
+                    currentRoundIndex={safeRound}
+                    history={rightHistory}
+                    onRoundChange={handleRoundChange}
+                  />
+                </div>
               </div>
-              <div className="border rounded-md p-3">
-                <TokenScoresBox tokenScores={activeItem?.bestTokenScores ?? null} />
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>

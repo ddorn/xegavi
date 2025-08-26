@@ -1,40 +1,33 @@
 "use client";
 
 import React from "react";
+import type { Playback } from "@/lib/types";
 
 export interface BarRaceControlsProps {
-  isPlaying: boolean;
-  onTogglePlay: () => void;
-  round: number;
+  playback: Playback;
   maxRound: number;
   totalRounds: number;
-  onSeek: (round: number) => void;
-  speed: number;
-  onSetSpeed: (speed: number) => void;
+  onPlaybackChange: (next: Playback) => void;
 }
 
 export function BarRaceControls({
-  isPlaying,
-  onTogglePlay,
-  round,
+  playback,
   maxRound,
   totalRounds,
-  onSeek,
-  speed,
-  onSetSpeed,
+  onPlaybackChange,
 }: BarRaceControlsProps) {
   const SPEED_STEPS = [0.25, 0.5, 1, 1.5, 2] as const;
-  const currentIndex = Math.max(0, SPEED_STEPS.indexOf((speed as typeof SPEED_STEPS[number]) ?? 1));
-  const cycle = () => onSetSpeed(SPEED_STEPS[(currentIndex + 1) % SPEED_STEPS.length]);
+  const currentIndex = Math.max(0, SPEED_STEPS.indexOf((playback.speed as typeof SPEED_STEPS[number]) ?? 1));
+  const cycle = () => onPlaybackChange({ ...playback, speed: SPEED_STEPS[(currentIndex + 1) % SPEED_STEPS.length] });
   return (
     <div className="flex items-center gap-3">
       <button
         type="button"
         className="button"
-        onClick={onTogglePlay}
-        aria-label={isPlaying ? "Pause" : "Play"}
+        onClick={() => onPlaybackChange({ ...playback, isPlaying: !playback.isPlaying })}
+        aria-label={playback.isPlaying ? "Pause" : "Play"}
       >
-        {isPlaying ? "Pause" : "Play"}
+        {playback.isPlaying ? "Pause" : "Play"}
       </button>
       <button
         type="button"
@@ -42,7 +35,7 @@ export function BarRaceControls({
         onClick={cycle}
         aria-label="Change speed"
       >
-        {`${speed}x`}
+        {`${playback.speed}x`}
       </button>
       <div className="flex-1 flex items-center gap-2">
         <input
@@ -50,13 +43,13 @@ export function BarRaceControls({
           min={0}
           max={maxRound}
           step={1}
-          value={Math.min(round, maxRound)}
-          onChange={(e) => onSeek(Number(e.target.value))}
+          value={Math.min(playback.round, maxRound)}
+          onChange={(e) => onPlaybackChange({ ...playback, round: Number(e.target.value) })}
           className="w-full"
           aria-label="Round"
         />
         <span className="tabular-nums text-sm min-w-[4.5rem] text-right">
-          {totalRounds === 0 ? "0/0" : `${Math.min(round, maxRound) + 1}/${totalRounds}`}
+          {`${playback.round + 1}/${totalRounds}`}
         </span>
       </div>
     </div>

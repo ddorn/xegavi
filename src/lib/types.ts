@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export type TokenScores = Array<[string, number]>;
 
+export type Playback = { isPlaying: boolean; round: number; speed: number };
+
 export const RoundModelSchema = z.object({
   model: z.string(),
   nice_model: z.string(),
@@ -9,7 +11,7 @@ export const RoundModelSchema = z.object({
   logo: z.string().optional(),
   score: z.number().finite(),
   move: z.string(),
-  token_scores: z.array(z.tuple([z.string(), z.number()])).nullable().optional(),
+  token_scores: z.array(z.tuple([z.string(), z.number()])),
 });
 export type RoundModel = z.infer<typeof RoundModelSchema>;
 

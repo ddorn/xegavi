@@ -37,9 +37,9 @@ prepare-dist: clean
 	[ -d $(ROOT)/public ] && cp -a $(ROOT)/public/. $(DIST_DIR)/public/ || true
 
 rsync:
-	rsync -az --delete $(DIST_DIR)/ $(HOST):$(DEST)/
+	rsync -az $(DIST_DIR)/ $(HOST):$(DEST)/
 
-deploy: install build prepare-dist rsync
+deploy: build prepare-dist rsync
 	ssh $(HOST) 'systemctl restart $(APP).service && journalctl -u $(APP).service -n 100 -f'
 
 put-env:
