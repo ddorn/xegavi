@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { buildRace, getFinalistsByBestScore } from "@/lib/barRace";
 import { BarRaceControls } from "@/components/BarRaceControls";
 import { ModelRoundDetails } from "@/components/ModelRoundDetails";
+import { TokenScoreHeatmap } from "@/components/TokenScoreHeatmap";
 
 export default function Home() {
   const [data, setData] = useState<Dataset | null>(null);
@@ -101,6 +102,16 @@ export default function Home() {
     return race.augmented.map((frame) => frame[rightId]!.score);
   }, [race.augmented, rightId]);
 
+  const leftRounds = useMemo(() => {
+    if (!leftId || !race.augmented.length) return [] as RoundModelWithBest[];
+    return race.augmented.map((frame) => frame[leftId]!).filter(Boolean);
+  }, [race.augmented, leftId]);
+
+  const rightRounds = useMemo(() => {
+    if (!rightId || !race.augmented.length) return [] as RoundModelWithBest[];
+    return race.augmented.map((frame) => frame[rightId]!).filter(Boolean);
+  }, [race.augmented, rightId]);
+
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
@@ -131,7 +142,7 @@ export default function Home() {
         )}
         {data && (
           <div className="flex flex-col gap-3">
-            <div className="border rounded-md p-3">
+            <div className="">
               <BarRaceControls
                 playback={playbackState}
                 maxRound={Math.max(0, race.frames.length - 1)}
@@ -145,7 +156,7 @@ export default function Home() {
                 frames={race.frames}
                 topN={10}
                 round={playbackState.round}
-                transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1))}
+                transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
                 onSelectedIdChange={handleSelectedIdChange}
               />
             </div>
@@ -159,6 +170,9 @@ export default function Home() {
                     history={leftHistory}
                     onRoundChange={handleRoundChange}
                   />
+                  <div className="mt-3">
+                    <TokenScoreHeatmap rounds={leftRounds as any} rowHeight={8} />
+                  </div>
                 </div>
                 <div className="border rounded-md p-3">
                   <ModelRoundDetails
@@ -167,6 +181,9 @@ export default function Home() {
                     history={rightHistory}
                     onRoundChange={handleRoundChange}
                   />
+                  <div className="mt-3">
+                    <TokenScoreHeatmap rounds={rightRounds as any} rowHeight={8} />
+                  </div>
                 </div>
               </div>
             )}
