@@ -32,7 +32,7 @@ export const ModelRoundDetails = React.memo(function ModelRoundDetails({ item, c
         <span className="font-bold">📍 Current</span>
         <span>Score {item.score.toFixed(2)}</span>
       </div>
-      <div className="text-sm">
+      <div className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
         {item.move}
       </div>
       <TokenScoresBox tokenScores={item.token_scores} />
@@ -42,7 +42,7 @@ export const ModelRoundDetails = React.memo(function ModelRoundDetails({ item, c
         <span>Score {item.bestScore.toFixed(2)}</span>
         <span>Round {item.bestRoundIndex + 1}</span>
       </div>
-      <div className="text-sm">
+      <div className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
         {item.bestMove}
       </div>
       <TokenScoresBox tokenScores={item.bestTokenScores} />

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { tokenScoreToColor } from "@/lib/colors";
+import { useColorScale } from "@/components/ColorScaleContext";
 
 export interface TokenScoresBoxProps {
   tokenScores: Array<[string, number]>;
@@ -13,6 +14,7 @@ export function TokenScoresBox({ tokenScores }: TokenScoresBoxProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const isDark = resolvedTheme === "dark";
+  const { maxAbsScore } = useColorScale();
 
   if (!mounted) {
   // Avoid SSR/theme mismatch flash
@@ -33,7 +35,7 @@ export function TokenScoresBox({ tokenScores }: TokenScoresBoxProps) {
         <span
           key={i}
           title={score.toFixed(2)}
-          style={{ backgroundColor: tokenScoreToColor(score, isDark) }}
+          style={{ backgroundColor: tokenScoreToColor(score, isDark, maxAbsScore) }}
           className="px-0.5"
         >
           {tok}

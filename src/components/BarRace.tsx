@@ -65,7 +65,7 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
           return (
             <motion.div
               key={id}
-              // initial={false}
+              initial={{ y }}
               animate={{ y }}
               transition={{ duration: transitionDurationSec, ease: "easeInOut" }}
               className="absolute left-0 right-0 will-change-transform"

@@ -27,9 +27,6 @@ export function pickTextColor(bgHex: string): string {
   return luminance > 0.6 ? "#141414" : "#fff";
 }
 
-// TODO: move this to a more appropriate place?
-export const TOKEN_SCORE_MAX = 3;
-
 export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -42,20 +39,26 @@ export function rgbToCss(r: number, g: number, b: number): string {
   return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
 }
 
-export function tokenScoreToColor(value: number, isDark: boolean): string {
+export function tokenScoreToColor(value: number, isDark: boolean, maxAbs: number): string {
   const RED: [number, number, number] = [220, 38, 38];      // red-600
   const NEUTRAL: [number, number, number] = isDark ? [31, 41, 55] : [243, 244, 246]; // gray-800 vs gray-100
   const GREEN: [number, number, number] = [22, 163, 74];     // green-600
-  const v = clamp(value, -TOKEN_SCORE_MAX, TOKEN_SCORE_MAX);
+
+  const limit = Math.max(0, maxAbs);
+  if (limit === 0) {
+    return rgbToCss(NEUTRAL[0], NEUTRAL[1], NEUTRAL[2]);
+  }
+
+  const v = clamp(value, -limit, limit);
   if (v >= 0) {
-    const t = v / TOKEN_SCORE_MAX;
+    const t = v / limit;
     return rgbToCss(
       lerp(NEUTRAL[0], GREEN[0], t),
       lerp(NEUTRAL[1], GREEN[1], t),
       lerp(NEUTRAL[2], GREEN[2], t)
     );
   } else {
-    const t = (-v) / TOKEN_SCORE_MAX;
+    const t = (-v) / limit;
     return rgbToCss(
       lerp(NEUTRAL[0], RED[0], t),
       lerp(NEUTRAL[1], RED[1], t),

@@ -9,6 +9,7 @@ import { buildRace, getFinalistsByBestScore } from "@/lib/barRace";
 import { BarRaceControls } from "@/components/BarRaceControls";
 import { ModelRoundDetails } from "@/components/ModelRoundDetails";
 import { TokenScoreHeatmap } from "@/components/TokenScoreHeatmap";
+import { ColorScaleProvider } from "@/components/ColorScaleContext";
 
 export default function Home() {
   const [data, setData] = useState<Dataset | null>(null);
@@ -112,6 +113,19 @@ export default function Home() {
     return race.augmented.map((frame) => frame[rightId]!).filter(Boolean);
   }, [race.augmented, rightId]);
 
+  const globalMaxAbsScore = useMemo(() => {
+    if (!data) return 0;
+    let m = 0;
+    for (const rounds of data.rounds) {
+      for (const r of rounds) {
+        for (const [, s] of r.token_scores) {
+          const a = Math.abs(s);
+          if (a > m) m = a;
+        }
+      }
+    }
+    return m;
+  }, [data]);
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
@@ -141,53 +155,55 @@ export default function Home() {
           <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
         )}
         {data && (
-          <div className="flex flex-col gap-3">
-            <div className="">
-              <BarRaceControls
-                playback={playbackState}
-                maxRound={Math.max(0, race.frames.length - 1)}
-                totalRounds={race.frames.length}
-                onPlaybackChange={setPlaybackState}
-              />
-            </div>
-
-            <div className="border rounded-md p-3">
-              <BarRace
-                frames={race.frames}
-                topN={10}
-                round={playbackState.round}
-                transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
-                onSelectedIdChange={handleSelectedIdChange}
-              />
-            </div>
-
-            {leftItem && rightItem && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="border rounded-md p-3">
-                  <ModelRoundDetails
-                    item={leftItem}
-                    currentRoundIndex={safeRound}
-                    history={leftHistory}
-                    onRoundChange={handleRoundChange}
-                  />
-                  <div className="mt-3">
-                    <TokenScoreHeatmap rounds={leftRounds as any} rowHeight={8} />
-                  </div>
-                </div>
-                <div className="border rounded-md p-3">
-                  <ModelRoundDetails
-                    item={rightItem}
-                    currentRoundIndex={safeRound}
-                    history={rightHistory}
-                    onRoundChange={handleRoundChange}
-                  />
-                  <div className="mt-3">
-                    <TokenScoreHeatmap rounds={rightRounds as any} rowHeight={8} />
-                  </div>
-                </div>
+          <ColorScaleProvider maxAbsScore={globalMaxAbsScore}>
+            <div className="flex flex-col gap-3">
+              <div className="">
+                <BarRaceControls
+                  playback={playbackState}
+                  maxRound={Math.max(0, race.frames.length - 1)}
+                  totalRounds={race.frames.length}
+                  onPlaybackChange={setPlaybackState}
+                />
               </div>
-            )}
-          </div>
+
+              <div className="border rounded-md p-3">
+                <BarRace
+                  frames={race.frames}
+                  topN={10}
+                  round={playbackState.round}
+                  transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
+                  onSelectedIdChange={handleSelectedIdChange}
+                />
+              </div>
+
+              {leftItem && rightItem && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="border rounded-md p-3">
+                    <ModelRoundDetails
+                      item={leftItem}
+                      currentRoundIndex={safeRound}
+                      history={leftHistory}
+                      onRoundChange={handleRoundChange}
+                    />
+                    <div className="mt-3">
+                      <TokenScoreHeatmap rounds={leftRounds as any} rowHeight={8} />
+                    </div>
+                  </div>
+                  <div className="border rounded-md p-3">
+                    <ModelRoundDetails
+                      item={rightItem}
+                      currentRoundIndex={safeRound}
+                      history={rightHistory}
+                      onRoundChange={handleRoundChange}
+                    />
+                    <div className="mt-3">
+                      <TokenScoreHeatmap rounds={rightRounds as any} rowHeight={8} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ColorScaleProvider>
         )}
       </div>
     </div>
