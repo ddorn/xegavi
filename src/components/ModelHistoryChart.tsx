@@ -28,8 +28,6 @@ export function ModelHistoryChart({ history, roundIndex, height = 140, onRoundCh
     return idx;
   }, [history, roundIndex]);
 
-  if (history.length === 0) return null;
-
   const isDark = useTheme().theme === "dark";
 
   // Without this, the XAxis blink evry round update.
@@ -45,6 +43,9 @@ export function ModelHistoryChart({ history, roundIndex, height = 140, onRoundCh
     />
   ), [isDark]);
 
+
+  if (history.length === 0) return null;
+
   return (
     <div style={{ width: "100%", height }}>
       <ResponsiveContainer>
@@ -52,7 +53,7 @@ export function ModelHistoryChart({ history, roundIndex, height = 140, onRoundCh
           data={data}
           margin={{ top: 22, right: 8, bottom: 16, left: 8 }}
           onClick={(state) => {
-            const label = (state as any)?.activeLabel;
+            const label = (state)?.activeLabel;
             if (typeof label === "number") onRoundChange?.(label);
           }}
         >
