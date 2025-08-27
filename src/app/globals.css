@@ -17,10 +17,10 @@
 
 .dark :root,
 .dark {
-    --slider-track: theme(colors.neutral.800);
-    --slider-progress: theme(colors.neutral.200);
-    --slider-thumb: theme(colors.neutral.950);
-    --slider-thumb-border: theme(colors.white/15%);
+    --slider-track: theme(colors.neutral.600);
+    --slider-progress: theme(colors.neutral.50);
+    --slider-thumb: theme(colors.white);
+    --slider-thumb-border: theme(colors.neutral.950/30%);
     --slider-focus: theme(colors.blue.400/35%);
 }
 
