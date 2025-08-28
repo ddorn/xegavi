@@ -24,7 +24,7 @@ export function TokenScoreHeatmapRow({ tokenScores, onHover }: TokenScoreHeatmap
       {tokenScores.map(([tok, score], tokenIdx) => {
         const tokChars = tokenCharLengths[tokenIdx] ?? Array.from(tok).length;
         const widthPct = totalChars > 0 ? (tokChars / totalChars) * 100 : 0;
-        const bg = tokenScoreToColor(score, isDark, maxAbsScore * 0.8);
+        const bg = tokenScoreToColor(score, isDark, maxAbsScore);
         return (
           <span
             key={tokenIdx}

@@ -166,7 +166,7 @@ export default function Home() {
   return (
     <div className="min-h-screen p-6 sm:p-10">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <div className="">Current experiment, heatmap mode:</div>
           <CycleButton
             value={heatmapMode}
@@ -176,7 +176,7 @@ export default function Home() {
             ariaLabel="Change heatmap mode"
             format={formatHeatmap}
           />
-        </div>
+        </div> */}
 
         <header className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Xent Labs Benchmark Race</h1>
@@ -204,7 +204,7 @@ export default function Home() {
         )}
 
         {data && (
-          <ColorScaleProvider maxAbsScore={globalMaxAbsScore}>
+          <ColorScaleProvider maxAbsScore={globalMaxAbsScore * 0.6}>
             <div className="flex flex-col gap-3">
               <div className="">
                 <BarRaceControls

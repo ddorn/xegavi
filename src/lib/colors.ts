@@ -30,8 +30,8 @@ export function clamp(value: number, min: number, max: number): number {
 }
 
 const NEGATIVE = chroma("#dc2626"); // red-600
-const NEUTRAL_ON_LIGHT_BACKGROUND = chroma("#1f2937"); // gray-800
-const NEUTRAL_ON_DARK_BACKGROUND = chroma("#f3f4f6"); // gray-100
+const NEUTRAL_ON_LIGHT_BACKGROUND = chroma("#f3f4f6"); // gray-100
+const NEUTRAL_ON_DARK_BACKGROUND = chroma("#1f2937"); // gray-800
 const POSITIVE = chroma("#16a34a"); // green-600
 
 const DARK_SCALE = chroma.scale([NEGATIVE, NEUTRAL_ON_DARK_BACKGROUND, POSITIVE]);
