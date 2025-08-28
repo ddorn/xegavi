@@ -59,7 +59,9 @@ export function TokenScoreHeatmap({ rounds, rowHeight = 8 }: TokenScoreHeatmapPr
       <div className="text-xs opacity-80 min-h-4">
         {hover ? (
           <span>
-            Round {hover.roundIdx + 1} · token "{hover.token}" · score {hover.score.toFixed(3)}
+            Round {hover.roundIdx + 1} · token &apos;{hover.token}&apos; · score {hover.score.toFixed(3)}
+            <br />
+            Move: {rounds[hover.roundIdx].move}
           </span>
         ) : null}
       </div>

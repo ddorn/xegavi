@@ -14,7 +14,7 @@ export interface SliderProps
 export function Slider({ min, max, step = 1, value, onValueChange, className, ...rest }: SliderProps) {
   const clamped = Math.max(min, Math.min(value, max));
   const percent = max > min ? ((clamped - min) / (max - min)) * 100 : 0;
-  const style = { ["--slider-value" as any]: `${percent}%` } as React.CSSProperties;
+  const style = { ["--slider-value"]: `${percent}%` } as React.CSSProperties;
 
   return (
     <input

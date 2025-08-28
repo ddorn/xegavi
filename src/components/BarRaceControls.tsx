@@ -3,6 +3,7 @@
 import React from "react";
 import type { Playback } from "@/lib/types";
 import { Slider } from "@/components/Slider";
+import { CycleButton } from "@/components/CycleButton";
 
 export interface BarRaceControlsProps {
   playback: Playback;
@@ -18,8 +19,6 @@ export function BarRaceControls({
   onPlaybackChange,
 }: BarRaceControlsProps) {
   const SPEED_STEPS = [0.25, 0.5, 1, 1.5, 2] as const;
-  const currentIndex = Math.max(0, SPEED_STEPS.indexOf((playback.speed as typeof SPEED_STEPS[number]) ?? 1));
-  const cycle = () => onPlaybackChange({ ...playback, speed: SPEED_STEPS[(currentIndex + 1) % SPEED_STEPS.length] });
 
   return (
     <div className="flex items-center gap-3">
@@ -31,14 +30,14 @@ export function BarRaceControls({
       >
         {playback.isPlaying ? "Pause" : "Play"}
       </button>
-      <button
-        type="button"
+      <CycleButton
+        value={(playback.speed as typeof SPEED_STEPS[number]) ?? 1}
+        steps={SPEED_STEPS}
+        onChange={(next) => onPlaybackChange({ ...playback, speed: next })}
         className="button"
-        onClick={cycle}
-        aria-label="Change speed"
-      >
-        {`${playback.speed}x`}
-      </button>
+        ariaLabel="Change speed"
+        format={(v) => `${v}x`}
+      />
       <div className="flex-1 flex items-center gap-2">
         <Slider
           min={0}

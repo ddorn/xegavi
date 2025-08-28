@@ -20,3 +20,5 @@ export const DatasetSchema = z.object({
   rounds: z.array(z.array(RoundModelSchema)),
 });
 export type Dataset = z.infer<typeof DatasetSchema>;
+
+export type HeatmapMode = "none" | "prefix" | "full" | "bottomStripe" | "overlayAligned";

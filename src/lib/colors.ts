@@ -40,9 +40,9 @@ export function rgbToCss(r: number, g: number, b: number): string {
 }
 
 export function tokenScoreToColor(value: number, isDark: boolean, maxAbs: number): string {
-  const RED: [number, number, number] = [220, 38, 38];      // red-600
+  const NEGATIVE: [number, number, number] = [220, 38, 38];      // red-600
   const NEUTRAL: [number, number, number] = isDark ? [31, 41, 55] : [243, 244, 246]; // gray-800 vs gray-100
-  const GREEN: [number, number, number] = [22, 163, 74];     // green-600
+  const POSITIVE: [number, number, number] = [22, 163, 74];      // green-600
 
   const limit = Math.max(0, maxAbs);
   if (limit === 0) {
@@ -53,16 +53,16 @@ export function tokenScoreToColor(value: number, isDark: boolean, maxAbs: number
   if (v >= 0) {
     const t = v / limit;
     return rgbToCss(
-      lerp(NEUTRAL[0], GREEN[0], t),
-      lerp(NEUTRAL[1], GREEN[1], t),
-      lerp(NEUTRAL[2], GREEN[2], t)
+      lerp(NEUTRAL[0], POSITIVE[0], t),
+      lerp(NEUTRAL[1], POSITIVE[1], t),
+      lerp(NEUTRAL[2], POSITIVE[2], t)
     );
   } else {
     const t = (-v) / limit;
     return rgbToCss(
-      lerp(NEUTRAL[0], RED[0], t),
-      lerp(NEUTRAL[1], RED[1], t),
-      lerp(NEUTRAL[2], RED[2], t)
+      lerp(NEUTRAL[0], NEGATIVE[0], t),
+      lerp(NEUTRAL[1], NEGATIVE[1], t),
+      lerp(NEUTRAL[2], NEGATIVE[2], t)
     );
   }
 }

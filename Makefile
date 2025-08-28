@@ -39,8 +39,7 @@ prepare-dist: clean
 rsync:
 	rsync -az $(DIST_DIR)/ $(HOST):$(DEST)/
 
-deploy: build prepare-dist rsync
-	ssh $(HOST) 'systemctl restart $(APP).service && journalctl -u $(APP).service -n 100 -f'
+deploy: build prepare-dist rsync restart
 
 put-env:
 	test -f $(ENV_LOCAL) && rsync -az $(ENV_LOCAL) $(HOST):$(ENV_REMOTE) || echo "Skip: $(ENV_LOCAL) not found"

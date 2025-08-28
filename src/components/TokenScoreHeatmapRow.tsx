@@ -14,7 +14,7 @@ export interface TokenScoreHeatmapRowProps {
 export function TokenScoreHeatmapRow({ tokenScores, onHover }: TokenScoreHeatmapRowProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
-  const { maxAbsScore: maxAbs } = useColorScale();
+  const { maxAbsScore } = useColorScale();
 
   const tokenCharLengths = useMemo(() => tokenScores.map(([tok]) => Array.from(tok).length), [tokenScores]);
   const totalChars = useMemo(() => tokenCharLengths.reduce((sum, len) => sum + len, 0), [tokenCharLengths]);
@@ -24,7 +24,7 @@ export function TokenScoreHeatmapRow({ tokenScores, onHover }: TokenScoreHeatmap
       {tokenScores.map(([tok, score], tokenIdx) => {
         const tokChars = tokenCharLengths[tokenIdx] ?? Array.from(tok).length;
         const widthPct = totalChars > 0 ? (tokChars / totalChars) * 100 : 0;
-        const bg = tokenScoreToColor(score, isDark, maxAbs);
+        const bg = tokenScoreToColor(score, isDark, maxAbsScore * 0.8);
         return (
           <span
             key={tokenIdx}
