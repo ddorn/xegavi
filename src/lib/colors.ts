@@ -1,3 +1,5 @@
+import chroma from "chroma-js";
+
 export const COMPANY_COLORS: Record<string, string> = {
   OpenAI: "#10A37F",
   Anthropic: "#E39981",
@@ -19,11 +21,7 @@ export function colorForCompany(company: string): string {
 }
 
 export function pickTextColor(bgHex: string): string {
-  const hex = bgHex.replace("#", "");
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const luminance = chroma(bgHex).luminance();
   return luminance > 0.6 ? "#141414" : "#fff";
 }
 
@@ -31,38 +29,23 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-export function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
-}
+const NEGATIVE = chroma("#dc2626"); // red-600
+const NEUTRAL_ON_LIGHT_BACKGROUND = chroma("#1f2937"); // gray-800
+const NEUTRAL_ON_DARK_BACKGROUND = chroma("#f3f4f6"); // gray-100
+const POSITIVE = chroma("#16a34a"); // green-600
 
-export function rgbToCss(r: number, g: number, b: number): string {
-  return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
-}
+const DARK_SCALE = chroma.scale([NEGATIVE, NEUTRAL_ON_DARK_BACKGROUND, POSITIVE]);
+const LIGHT_SCALE = chroma.scale([NEGATIVE, NEUTRAL_ON_LIGHT_BACKGROUND, POSITIVE]);
 
 export function tokenScoreToColor(value: number, isDark: boolean, maxAbs: number): string {
-  const NEGATIVE: [number, number, number] = [220, 38, 38];      // red-600
-  const NEUTRAL: [number, number, number] = isDark ? [31, 41, 55] : [243, 244, 246]; // gray-800 vs gray-100
-  const POSITIVE: [number, number, number] = [22, 163, 74];      // green-600
-
   const limit = Math.max(0, maxAbs);
   if (limit === 0) {
-    return rgbToCss(NEUTRAL[0], NEUTRAL[1], NEUTRAL[2]);
+    return isDark ? NEUTRAL_ON_DARK_BACKGROUND.css() : NEUTRAL_ON_LIGHT_BACKGROUND.css();
   }
 
+  const scale = isDark ? DARK_SCALE : LIGHT_SCALE;
+  // Map [-limit, limit] to [0, 1]
   const v = clamp(value, -limit, limit);
-  if (v >= 0) {
-    const t = v / limit;
-    return rgbToCss(
-      lerp(NEUTRAL[0], POSITIVE[0], t),
-      lerp(NEUTRAL[1], POSITIVE[1], t),
-      lerp(NEUTRAL[2], POSITIVE[2], t)
-    );
-  } else {
-    const t = (-v) / limit;
-    return rgbToCss(
-      lerp(NEUTRAL[0], NEGATIVE[0], t),
-      lerp(NEUTRAL[1], NEGATIVE[1], t),
-      lerp(NEUTRAL[2], NEGATIVE[2], t)
-    );
-  }
+  const t = v / limit / 2 + 0.5;
+  return scale(t).css();
 }
