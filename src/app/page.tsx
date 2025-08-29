@@ -1,70 +1,47 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DatasetSchema, type Dataset, type Playback } from "@/lib/types";
+import { type Playback } from "@/lib/types";
 import { BarRace } from "@/components/BarRace";
-import type { RoundModelWithBest } from "@/lib/barRace";
+import type { AugmentedFrame, BarRaceFrame, RoundModelWithBest } from "@/lib/barRace";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { buildRace, getFinalistsByBestScore } from "@/lib/barRace";
+import { RaceData } from "@/lib/barRace";
 import { BarRaceControls } from "@/components/BarRaceControls";
 import { ModelRoundDetails } from "@/components/ModelRoundDetails";
 import { TokenScoreHeatmap } from "@/components/TokenScoreHeatmap";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScores } from "@/lib/types";
+import { useDataset } from "@/hooks/useDataset";
+import { colorForCompany } from "@/lib/colors";
 
 export default function Home() {
-  const [data, setData] = useState<Dataset | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, onFile } = useDataset();
 
-  const onFile = useCallback(async (file: File) => {
-    try {
-      const text = await file.text();
-      const parsed = DatasetSchema.parse(JSON.parse(text));
-      setData(parsed);
-      setError(null);
-    } catch (e) {
-      console.error(e);
-      setError(e instanceof Error ? e.message : String(e));
-      setData(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/load.json", { cache: "no-store" });
-        if (!res.ok) return; // If not present, do nothing
-        const json = await res.json();
-        const parsed = DatasetSchema.parse(json);
-        setData(parsed);
-        setError(null);
-      } catch (e) {
-        console.error(e);
-        setError(e instanceof Error ? e.message : String(e));
-        setData(null);
-      }
-    })();
-  }, []);
-
-  const race = useMemo(() => (data ? buildRace(data) : { frames: [], augmented: [] }), [data]);
+  const raceData = useMemo(() => (data ? new RaceData(data) : null), [data]);
+  const frames = useMemo(() => (raceData ? buildFrames(raceData.augmented) : []), [raceData]);
 
   const [playbackState, setPlaybackState] = useState<Playback>({ isPlaying: true, round: 0, speed: 1 });
+  const handleRoundChange = useCallback((idx: number) => {
+    setPlaybackState((s) => ({ ...s, round: idx }));
+  }, []);
+
+  // Reset round to 0 state when race data changes
+  useEffect(() => {
+    setPlaybackState((s) => ({ ...s, round: 0 }));
+  }, [raceData]);
 
   useEffect(() => {
-    setPlaybackState((s) => ({ ...s, round: Math.min(s.round, Math.max(0, race.frames.length - 1)) }));
-  }, [race.frames.length]);
-
-  useEffect(() => {
-    if (!playbackState.isPlaying || race.frames.length === 0) return;
+    const n = raceData?.roundsLength ?? 0;
+    if (!playbackState.isPlaying || n === 0) return;
     const stepMs = 1000;
     const effective = Math.max(1, Math.round(stepMs / (playbackState.speed || 1)));
     const id = setInterval(() => {
-      setPlaybackState((s) => ({ ...s, round: (s.round + 1) % Math.max(1, race.frames.length) }));
+      setPlaybackState((s) => ({ ...s, round: (s.round + 1) % Math.max(1, n) }));
     }, effective);
     return () => clearInterval(id);
-  }, [playbackState.isPlaying, playbackState.speed, race.frames.length]);
+  }, [playbackState.isPlaying, playbackState.speed, raceData?.roundsLength]);
 
-  const [leftId, rightIdDefault] = useMemo(() => getFinalistsByBestScore(race.augmented), [race.augmented]);
+  const [leftId, rightIdDefault] = useMemo(() => (raceData ? raceData.finalists() : [undefined, undefined]), [raceData]);
 
   useEffect(() => {
     setPlaybackState((s) => ({ ...s, round: 0 }));
@@ -76,65 +53,34 @@ export default function Home() {
   const handleSelectedIdChange = useCallback((id: string | null, round: number) => {
     setClickedId(id);
   }, []);
-  const handleRoundChange = useCallback((idx: number) => {
-    setPlaybackState((s) => ({ ...s, round: idx }));
-  }, []);
 
   const rightId = useMemo(() => {
-    if (!race.augmented.length) return null;
+    if (!raceData) return null;
     const fallback = rightIdDefault && rightIdDefault !== leftId ? rightIdDefault : (
       // choose any different id from the last frame
-      Object.keys(race.augmented[race.augmented.length - 1] || {}).find((id) => id !== leftId) || null
+      Object.keys(raceData.augmented[raceData.augmented.length - 1] || {}).find((id) => id !== leftId) || null
     );
     if (clickedId && clickedId !== leftId) return clickedId;
     return fallback;
-  }, [clickedId, rightIdDefault, leftId, race.augmented]);
+  }, [clickedId, rightIdDefault, leftId, raceData]);
 
-  const safeRound = Math.min(Math.max(0, playbackState.round), Math.max(0, race.augmented.length - 1));
-  const leftItem: RoundModelWithBest | null = leftId ? race.augmented[safeRound]?.[leftId] ?? null : null;
-  const rightItem: RoundModelWithBest | null = rightId ? race.augmented[safeRound]?.[rightId] ?? null : null;
+  const safeRound = useMemo(() => {
+    const maxIdx = Math.max(0, (raceData?.augmented.length ?? 0) - 1);
+    return Math.min(Math.max(0, playbackState.round), maxIdx);
+  }, [playbackState.round, raceData?.augmented.length]);
 
-  const leftHistory = useMemo(() => {
-    if (!leftId || !race.augmented.length) return [] as number[];
-    return race.augmented.map((frame) => frame[leftId]!.score);
-  }, [race.augmented, leftId]);
+  const leftItem: RoundModelWithBest | null = leftId && raceData ? raceData.itemAt(leftId, safeRound) : null;
+  const rightItem: RoundModelWithBest | null = rightId && raceData ? raceData.itemAt(rightId, safeRound) : null;
 
-  const rightHistory = useMemo(() => {
-    if (!rightId || !race.augmented.length) return [] as number[];
-    return race.augmented.map((frame) => frame[rightId]!.score);
-  }, [race.augmented, rightId]);
+  const leftHistory = useMemo(() => (leftId && raceData ? raceData.historyFor(leftId) : [] as number[]), [raceData, leftId]);
+  const rightHistory = useMemo(() => (rightId && raceData ? raceData.historyFor(rightId) : [] as number[]), [raceData, rightId]);
 
-  const leftRounds = useMemo(() => {
-    if (!leftId || !race.augmented.length) return [] as RoundModelWithBest[];
-    return race.augmented.map((frame) => frame[leftId]!).filter(Boolean);
-  }, [race.augmented, leftId]);
-
-  const rightRounds = useMemo(() => {
-    if (!rightId || !race.augmented.length) return [] as RoundModelWithBest[];
-    return race.augmented.map((frame) => frame[rightId]!).filter(Boolean);
-  }, [race.augmented, rightId]);
-
-  const globalMaxAbsScore = useMemo(() => {
-    if (!data) return 0;
-    let m = 0;
-    for (const rounds of data.rounds) {
-      for (const r of rounds) {
-        for (const [, s] of r.token_scores) {
-          const a = Math.abs(s);
-          if (a > m) m = a;
-        }
-      }
-    }
-    return m;
-  }, [data]);
-
+  const leftRounds = useMemo(() => (leftId && raceData ? raceData.roundsFor(leftId) : [] as RoundModelWithBest[]), [raceData, leftId]);
+  const rightRounds = useMemo(() => (rightId && raceData ? raceData.roundsFor(rightId) : [] as RoundModelWithBest[]), [raceData, rightId]);
 
   const getTokenScores = useCallback((id: string, round: number): TokenScores | null => {
-    const item = race.augmented[round]?.[id];
-    if (!item) return null;
-    // Use best token scores per your request
-    return (item.bestTokenScores ?? item.token_scores) || null;
-  }, [race.augmented]);
+    return raceData ? raceData.tokenScoresAt(id, round) : null;
+  }, [raceData]);
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
@@ -164,22 +110,22 @@ export default function Home() {
           <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
         )}
 
-        {data && (
-          <ColorScaleProvider maxAbsScore={globalMaxAbsScore * 0.6}>
+        {raceData && (
+          <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
             <div className="flex flex-col gap-3">
               <div className="">
                 <BarRaceControls
                   playback={playbackState}
-                  maxRound={Math.max(0, race.frames.length - 1)}
-                  totalRounds={race.frames.length}
+                  maxRound={Math.max(0, raceData.roundsLength - 1)}
+                  totalRounds={raceData.roundsLength}
                   onPlaybackChange={setPlaybackState}
                 />
               </div>
 
               <div className="border rounded-md p-3">
                 <BarRace
-                  frames={race.frames}
-                  topN={race.frames[0].length}
+                  frames={frames}
+                  topN={frames[0].length}
                   barHeight={24}
                   round={playbackState.round}
                   transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
@@ -222,5 +168,20 @@ export default function Home() {
         )}
       </div>
     </div>
+  );
+}
+
+
+/** Build presentation frames from augmented data. */
+export function buildFrames(augmented: AugmentedFrame[]): BarRaceFrame[] {
+  return augmented.map((frame) =>
+    Object.values(frame).map((it) => ({
+      id: it.model,
+      name: it.nice_model ?? it.model,
+      description: it.bestMove,
+      value: it.bestScore,
+      color: colorForCompany(it.company),
+      iconSrc: it.logo ?? "",
+    }))
   );
 }
