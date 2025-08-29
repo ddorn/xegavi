@@ -10,8 +10,7 @@ import { BarRaceControls } from "@/components/BarRaceControls";
 import { ModelRoundDetails } from "@/components/ModelRoundDetails";
 import { TokenScoreHeatmap } from "@/components/TokenScoreHeatmap";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
-import type { HeatmapMode, TokenScores } from "@/lib/types";
-import { CycleButton } from "@/components/CycleButton";
+import type { TokenScores } from "@/lib/types";
 
 export default function Home() {
   const [data, setData] = useState<Dataset | null>(null);
@@ -137,47 +136,9 @@ export default function Home() {
     return (item.bestTokenScores ?? item.token_scores) || null;
   }, [race.augmented]);
 
-  const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>("prefix");
-  const HEATMAP_STEPS = [
-    "none",
-    "prefix",
-    "full",
-    "overlayAligned",
-    "bottomStripe",
-  ] as const satisfies readonly HeatmapMode[];
-
-  const formatHeatmap = (m: HeatmapMode) => {
-    switch (m) {
-      case "none":
-        return "No heatmap";
-      case "prefix":
-        return "Prefix";
-      case "full":
-        return "Full";
-      case "overlayAligned":
-        return "Overlay";
-      case "bottomStripe":
-        return "Stripe";
-      default:
-        return m;
-    }
-  };
-
   return (
     <div className="min-h-screen p-6 sm:p-10">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
-        {/* <div className="flex items-center gap-2">
-          <div className="">Current experiment, heatmap mode:</div>
-          <CycleButton
-            value={heatmapMode}
-            steps={HEATMAP_STEPS}
-            onChange={(next) => setHeatmapMode(next)}
-            className="button"
-            ariaLabel="Change heatmap mode"
-            format={formatHeatmap}
-          />
-        </div> */}
-
         <header className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Xent Labs Benchmark Race</h1>
           <div className="flex items-center gap-2">
@@ -223,7 +184,7 @@ export default function Home() {
                   round={playbackState.round}
                   transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
                   onSelectedIdChange={handleSelectedIdChange}
-                  heatmapMode={heatmapMode}
+                  heatmapMode="prefix"
                   getTokenScores={getTokenScores}
                 />
               </div>
