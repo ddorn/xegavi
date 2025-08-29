@@ -7,30 +7,16 @@ import { useColorScale } from "@/components/ColorScaleContext";
 
 export interface TokenScoresBoxProps {
   tokenScores: Array<[string, number]>;
+  className?: string;
 }
 
-export function TokenScoresBox({ tokenScores }: TokenScoresBoxProps) {
+export function TokenScoresBox({ tokenScores, className }: TokenScoresBoxProps) {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
   const isDark = resolvedTheme === "dark";
   const { maxAbsScore } = useColorScale();
 
-  if (!mounted) {
-  // Avoid SSR/theme mismatch flash
-    return (
-      <div className="text-sm leading-6 whitespace-pre-wrap">
-        {tokenScores.map(([tok], i) => (
-          <span key={i} className="px-0.5">
-            {tok}
-          </span>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="text-sm leading-6 whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">
+    <div className={"whitespace-pre-wrap text-neutral-900 dark:text-neutral-100 " + (className ?? "")}>
       {tokenScores.map(([tok, score], i) => (
         <span
           key={i}

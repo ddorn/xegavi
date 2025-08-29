@@ -13,6 +13,8 @@ import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScores } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
 import { colorForCompany } from "@/lib/colors";
+import { Explainer } from "@/components/Explainer";
+import { Coachmark } from "@/components/Coachmark";
 
 export default function Home() {
   const { data, error, onFile } = useDataset();
@@ -88,7 +90,7 @@ export default function Home() {
         <header className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Xent Labs Benchmark Race</h1>
           <div className="flex items-center gap-2">
-            <label className="cursor-pointer inline-flex items-center gap-3">
+            {/* <label className="cursor-pointer inline-flex items-center gap-3">
               <input
                 type="file"
                 accept="application/json"
@@ -99,7 +101,7 @@ export default function Home() {
                 }}
               />
               <span className="button">Load JSON</span>
-            </label>
+            </label> */}
             <ThemeToggle />
           </div>
         </header>
@@ -113,14 +115,16 @@ export default function Home() {
         {raceData && (
           <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
             <div className="flex flex-col gap-3">
-              <div className="">
-                <BarRaceControls
-                  playback={playbackState}
-                  maxRound={Math.max(0, raceData.roundsLength - 1)}
-                  totalRounds={raceData.roundsLength}
-                  onPlaybackChange={setPlaybackState}
-                />
-              </div>
+              <Explainer className="mt-6 mb-12" />
+
+              <h2 className="text-3xl font-bold text-center mb-6">Which model is the best?</h2>
+
+              <BarRaceControls
+                playback={playbackState}
+                maxRound={Math.max(0, raceData.roundsLength - 1)}
+                totalRounds={raceData.roundsLength}
+                onPlaybackChange={setPlaybackState}
+              />
 
               <div className="border rounded-md p-3">
                 <BarRace
