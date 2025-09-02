@@ -47,8 +47,8 @@ export function BarRaceControls({
           onValueChange={(v) => onPlaybackChange({ ...playback, round: v })}
           aria-label="Round"
         />
-        <span className="tabular-nums text-sm min-w-[4.5rem] text-right">
-          {`${playback.round + 1}/${totalRounds}`}
+        <span className="tabular-nums text-sm min-w-[6.5rem] text-right">
+          {`Attempt ${playback.round + 1}/${totalRounds}`}
         </span>
       </div>
     </div>

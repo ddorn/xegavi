@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-export function Logo({ src, size, alt }: { src?: string; size: number; alt: string }) {
+export interface LogoProps {
+  src?: string;
+  size?: number;
+  alt: string;
+}
+
+export function Logo({ src, size, alt }: LogoProps) {
   const [ok, setOk] = useState<boolean>(false);
 
   useEffect(() => {
@@ -21,8 +27,19 @@ export function Logo({ src, size, alt }: { src?: string; size: number; alt: stri
   }, [src]);
 
   if (!src || !ok) return null;
+
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} width={size} height={size} style={{ width: size, height: size }} />
+    <img
+      src={src}
+      alt={alt}
+      style={{
+        width: size ?? '100%',
+        height: size ?? '100%',
+        objectFit: 'contain',
+        aspectRatio: '1 / 1'
+      }}
+    />
   );
 }
