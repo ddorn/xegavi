@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, ReferenceLine, ReferenceDot, Label } from "recharts";
+import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, ReferenceLine, ReferenceDot, Label, Tooltip } from "recharts";
 
 export interface RoundHistoryVerticalChartProps {
   scores: number[];
@@ -47,6 +47,28 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
   const segRight = xMax + range * 0.2; // small padding from the right
   const segLeft  = 0;
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const currentScore = payload.find((p: any) => p.dataKey === 'current')?.value;
+      const bestScore = payload.find((p: any) => p.dataKey === 'best')?.value;
+
+      return (
+        <div style={{
+          backgroundColor: 'white',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          padding: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <p style={{ margin: '0 0 4px 0', fontWeight: 'bold' }}>Round {label}</p>
+          <p style={{ margin: '0 0 2px 0' }}>Score: {currentScore.toFixed(1)}</p>
+          <p style={{ margin: '0' }}>Best: {bestScore.toFixed(1)}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className={className} style={{ width, height: height ?? computedHeight }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -65,12 +87,11 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
             domain={[yMin, yMax]}
             ticks={yTicks}
             tickLine={false}
-            axisLine={false}
             width={20}
             tick={{ fontSize: 10, opacity: 0.8 }}
           />
 
-          <ReferenceLine x={0} stroke="currentColor" strokeOpacity={0.5} />
+          <Tooltip content={<CustomTooltip />} />
 
           <Area
             type="monotone"
@@ -105,7 +126,7 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
             const emoji = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
             return (
               <ReferenceLine
-                key={r.round}
+                key={emoji}
                 segment={[ { x: segLeft, y: r.round }, { x: segRight, y: r.round } ]}
                 stroke="currentColor"
                 strokeDasharray="4 4"
@@ -114,6 +135,7 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
               </ReferenceLine>
             );
           })}
+
         </ComposedChart>
       </ResponsiveContainer>
     </div>
