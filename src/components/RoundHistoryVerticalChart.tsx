@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, ReferenceLine, ReferenceDot, Label, Tooltip } from "recharts";
 
 export interface RoundHistoryVerticalChartProps {
@@ -13,25 +13,23 @@ export interface RoundHistoryVerticalChartProps {
 }
 
 export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, height, color = "#3b82f6", className }: RoundHistoryVerticalChartProps) {
-  const { data, rankedRounds, xMin, xMax } = useMemo(() => {
-    let best = Number.NEGATIVE_INFINITY;
-    const d = scores.map((score, idx) => {
-      best = Math.max(best, score);
-      return { y: idx + 1, // 1-based for nicer labeling
-               current: score,
-               best };
-    });
+  let best = Number.NEGATIVE_INFINITY;
+  const data = scores.map((score, idx) => {
+    best = Math.max(best, score);
+    return {
+      y: idx + 1, // 1-based for nicer labeling
+      current: score,
+      best
+    };
+  });
 
-    // top 3 rounds by final score (not best-so-far). If ties, earlier rounds first.
-    const ranked = scores
-      .map((s, i) => ({ round: i + 1, score: s }))
-      .sort((a, b) => (b.score - a.score) || (a.round - b.round));
+  // top 3 rounds by final score (not best-so-far). If ties, earlier rounds first.
+  const rankedRounds = scores
+    .map((s, i) => ({ round: i + 1, score: s }))
+    .sort((a, b) => (b.score - a.score) || (a.round - b.round));
 
-    const minVal = Math.min(0, ...scores);
-    const maxVal = Math.max(0, ...scores);
-
-    return { data: d, rankedRounds: ranked, xMin: minVal, xMax: maxVal };
-  }, [scores]);
+  const xMin = Math.min(0, ...scores);
+  const xMax = Math.max(0, ...scores);
 
   if (!scores.length) return null;
 

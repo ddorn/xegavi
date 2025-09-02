@@ -4,15 +4,21 @@ import React from "react";
 
 export interface ExplainerProps {
   className?: string;
+  vertical?: boolean;
+  showFramework?: boolean;
 }
 
 const rightArrowUnicode = "→";
 
-export function Explainer({ className }: ExplainerProps) {
+export function Explainer({ className, vertical = false, showFramework = true }: ExplainerProps) {
+
+  const gridClass = vertical || !showFramework ? "grid-cols-1" : "grid-cols-2";
+
   return (
     <section className={className}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-md p-4">
+      <div className={`grid ${gridClass} gap-8`}>
+        {showFramework && (
+        <div className="">
           <h3 className="font-black text-xl mb-2">The Framework</h3>
           <div className="space-y-3 text-[0.975rem] leading-relaxed">
             <p>
@@ -29,10 +35,11 @@ export function Explainer({ className }: ExplainerProps) {
                 More details on our blog
               </a>
             </p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="rounded-md p-4">
+        <div className="">
           <h3 className="font-black text-xl mb-2">Today's game: Condense</h3>
           <div className="space-y-3 text-[0.975rem] leading-relaxed">
             <p>

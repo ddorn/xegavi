@@ -90,39 +90,50 @@ export default function Home() {
         {!data && (
           <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
         )}
-
+{/*
         <h1 className="text-3xl font-black max-w-xl">
           We measure an AI's <span className="highlight">strategic reasoning</span> by
           giving it a game and <span className="">30 attempts</span> to figure out how to win,
           rewarding models that can explore, exploit, and <span className="highlight">improve their strategy on the fly</span>.
+        </h1> */}
+
+        <h1 className="text-3xl font-black max-w-2xl">
+          Find a short hint that helps predict a text, but without reusing any of its words.
+          <br />
+          In 30 attempts, who can find the best strategy?
         </h1>
 
         {raceData && (
           <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
             <div className="flex flex-col gap-3">
 
-              <BarRaceControls
-                playback={playbackState}
-                maxRound={Math.max(0, raceData.roundsLength - 1)}
-                totalRounds={raceData.roundsLength}
-                onPlaybackChange={setPlaybackState}
-              />
+              <div className="flex gap-6">
+                <div className="max-w-4xl flex-1">
+                  <div className="border rounded-md mb-2 p-3">
+                    <BarRace
+                      frames={frames}
+                      topN={frames[0].length}
+                      barHeight={24}
+                      round={playbackState.round}
+                      transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
+                      onSelectedIdChange={handleSelectedIdChange}
+                      heatmapMode="none"
+                      getTokenScores={getTokenScores}
+                    />
+                  </div>
 
-              <div className="border rounded-md p-3">
-                <BarRace
-                  frames={frames}
-                  topN={frames[0].length}
-                  barHeight={24}
-                  round={playbackState.round}
-                  transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
-                  onSelectedIdChange={handleSelectedIdChange}
-                  heatmapMode="prefix"
-                  getTokenScores={getTokenScores}
-                />
+                  <BarRaceControls
+                    playback={playbackState}
+                    maxRound={Math.max(0, raceData.roundsLength - 1)}
+                    totalRounds={raceData.roundsLength}
+                    onPlaybackChange={setPlaybackState}
+                  />
+                </div>
+
+                <Explainer className="flex-1" vertical showFramework={false} />
               </div>
 
               <GameDisplayWithDetails game={leftRounds} className="mt-6" />
-              <Explainer className="mt-2" />
 
             </div>
           </ColorScaleProvider>

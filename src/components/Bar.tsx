@@ -53,7 +53,7 @@ export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transi
             title={`${item.name}: ${item.description}`}
           >
             <span className="font-black">{item.name}</span>
-            <span className="ml-2 sm:ml-4 opacity-90 overflow-hidden text-ellipsis">{item.description}</span>
+            {/* <span className="ml-2 sm:ml-4 opacity-90 overflow-hidden text-ellipsis">{item.description}</span> */}
           </div>
           <div className="mx-2 font-semibold text-xs sm:text-sm z-10" style={{ color: computedTextColor }}>
             {item.value.toFixed(1)}
