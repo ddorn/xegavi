@@ -1,16 +1,18 @@
 "use client";
 
 import React from "react";
+import { TokenScoresBox } from "./TokenScoresBox";
 
 export interface ExplainerProps {
   className?: string;
   vertical?: boolean;
   showFramework?: boolean;
+  tokenScores?: Array<[string, number]>;
 }
 
 const rightArrowUnicode = "→";
 
-export function Explainer({ className, vertical = false, showFramework = true }: ExplainerProps) {
+export function Explainer({ className, vertical = false, showFramework = true, tokenScores }: ExplainerProps) {
 
   const gridClass = vertical || !showFramework ? "grid-cols-1" : "grid-cols-2";
 
@@ -65,6 +67,17 @@ export function Explainer({ className, vertical = false, showFramework = true }:
               </a>
           </div>
         </div>
+
+
+          {tokenScores && (
+          <div className="max-w-100 text-center">
+            {/* <div className="text-sm font-semibold mb-2">Text</div> */}
+            <div className="leading-7 text-lg">
+              <span className="bg-amber-100 text-neutral-500 border rounded-md px-2 py-1 mr-2">PREFIX...</span>
+              <TokenScoresBox tokenScores={tokenScores} className="inline align-baseline leading-7" />
+          </div>
+          </div>
+        )}
       </div>
     </section>
   );

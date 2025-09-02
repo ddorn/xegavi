@@ -6,9 +6,10 @@ export interface LogoProps {
   src?: string;
   size?: number;
   alt: string;
+  className?: string;
 }
 
-export function Logo({ src, size, alt }: LogoProps) {
+export function Logo({ src, size, alt, className }: LogoProps) {
   const [ok, setOk] = useState<boolean>(false);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export function Logo({ src, size, alt }: LogoProps) {
         objectFit: 'contain',
         aspectRatio: '1 / 1'
       }}
+      className={className}
     />
   );
 }

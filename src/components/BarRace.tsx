@@ -156,11 +156,6 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
               transition={{ duration: transitionDurationSec, ease: "easeInOut" }}
               className="absolute left-0 right-0 will-change-transform"
               style={{ height: barHeight }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedId(id);
-                onSelectedIdChange?.(id, safeRound);
-              }}
             >
               <Bar
                 item={it}

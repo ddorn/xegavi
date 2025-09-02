@@ -16,7 +16,7 @@ export function TokenScoresBox({ tokenScores, className }: TokenScoresBoxProps) 
   const { maxAbsScore } = useColorScale();
 
   return (
-    <div className={"whitespace-pre-wrap text-neutral-900 dark:text-neutral-100 " + (className ?? "")}>
+    <div className={"whitespace-wrap text-neutral-900 dark:text-neutral-100 " + (className ?? "")}>
       {tokenScores.map(([tok, score], i) => (
         <span
           key={i}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import type { RoundModel } from "@/lib/types";
 import { TokenScoreHeatmapRow } from "@/components/TokenScoreHeatmapRow";
 import { RoundHistoryVerticalChart } from "@/components/RoundHistoryVerticalChart";
@@ -23,7 +23,7 @@ export function TokenScoreHeatmap({ rounds, rowHeight = 16, showMove = false, ch
     ? "grid-cols-[minmax(0,_1fr)_max-content_minmax(20rem,_max-content)]"
     : "grid-cols-[minmax(0,_1fr)_max-content]";
 
-  const scores = useMemo(() => rounds.map(r => r.score), [rounds]);
+  const scores = rounds.map(r => r.score);
 
   return (
     <div className="" onMouseLeave={() => setHover(null)}>

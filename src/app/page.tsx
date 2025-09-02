@@ -10,9 +10,11 @@ import { BarRaceControls } from "@/components/BarRaceControls";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScores } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
-import { colorForCompany } from "@/lib/colors";
+import { colorForCompany, pickTextColor } from "@/lib/colors";
 import { Explainer } from "@/components/Explainer";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
+import { TokenScoresBox } from "@/components/TokenScoresBox";
+import { Logo } from "@/components/Logo";
 
 export default function Home() {
   const { data, error, onFile } = useDataset();
@@ -63,6 +65,10 @@ export default function Home() {
     return raceData ? raceData.tokenScoresAt(id, round) : null;
   }, [raceData]);
 
+  const explainerRound = focusedModelId && raceData ? raceData.roundsFor(focusedModelId)[safeRound] : null;
+  const explainerBgColor = colorForCompany(explainerRound?.company ?? "");
+  const explainerTextColor = pickTextColor(explainerBgColor);
+
   return (
     <div className="min-h-screen p-6 sm:p-10">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
@@ -108,7 +114,7 @@ export default function Home() {
             <div className="flex flex-col gap-3">
 
               <div className="flex gap-6">
-                <div className="max-w-4xl flex-1">
+                <div className="min-w-2xl flex-1">
                   <div className="border rounded-md mb-2 p-3">
                     <BarRace
                       frames={frames}
@@ -130,7 +136,28 @@ export default function Home() {
                   />
                 </div>
 
-                <Explainer className="flex-1" vertical showFramework={false} />
+                <div className="flex-1">
+                  <Explainer vertical showFramework={false} />
+                  {explainerRound && (<>
+                    <h3 className="font-black text-xl mb-1 mt-6">Today's text to condense</h3>
+
+                    <div className="">
+                      <Logo src={explainerRound?.logo ?? ""} className="inline-block align-middle mr-1" alt={explainerRound?.company ?? ""} size={20} />
+
+                      <span
+                        className="px-2 mr-1 items-center align-middle"
+                        style={{ color: explainerTextColor, backgroundColor: explainerBgColor }}
+                      >
+                        <span className="font-black mr-2">{explainerRound?.nice_model}</span>
+                        <span className="">{explainerRound?.bestMove}</span>
+                      </span>
+
+                      <TokenScoresBox tokenScores={explainerRound?.bestTokenScores} className="inline align-middle" />
+                    </div>
+                  </>
+                  )}
+                </div>
+
               </div>
 
               <GameDisplayWithDetails game={leftRounds} className="mt-6" />

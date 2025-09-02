@@ -28,10 +28,6 @@ export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transi
     <div
       className="flex items-center gap-2 w-full"
       style={{ height: barHeight }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick?.();
-      }}
     >
         {slots?.prefix}
       <div style={{ width: barHeight, height: barHeight }} className="shrink-0 flex items-center justify-center dark:bg-white rounded-lg">
@@ -45,6 +41,8 @@ export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transi
           transition={{ duration: transitionDurationSec}}
           style={solidBackground ? { backgroundColor: item.color, height: barHeight } : { height: barHeight }}
           className={`relative overflow-hidden flex justify-between items-center border ${selected ? "" : "border-transparent"}`}
+          onClick={onClick}
+          onHoverStart={onClick}
         >
           {slots?.overlay}
           <div
