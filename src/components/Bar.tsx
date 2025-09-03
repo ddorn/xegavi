@@ -43,6 +43,8 @@ export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transi
           className={`relative overflow-hidden flex justify-between items-center border ${selected ? "" : "border-transparent"}`}
           onClick={onClick}
           onHoverStart={onClick}
+          data-bar-id={item.id}
+          data-bar-name={item.name}
         >
           {slots?.overlay}
           <div

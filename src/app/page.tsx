@@ -15,6 +15,7 @@ import { Explainer } from "@/components/Explainer";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import { TokenScoresBox } from "@/components/TokenScoresBox";
 import { Logo } from "@/components/Logo";
+import TourGuide from "@/components/TourGuide";
 
 export default function Home() {
   const { data, error, onFile } = useDataset();
@@ -69,25 +70,38 @@ export default function Home() {
   const explainerBgColor = colorForCompany(explainerRound?.company ?? "");
   const explainerTextColor = pickTextColor(explainerBgColor);
 
+  const [startTour, setStartTour] = useState(false);
+  // Reset the trigger shortly after starting so the button can be reused
+  useEffect(() => {
+    if (!startTour) return;
+    const t = setTimeout(() => setStartTour(false), 100);
+    return () => clearTimeout(t);
+  }, [startTour]);
+
   return (
     <div className="min-h-screen p-6 sm:p-10">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
         <header className="flex items-center justify-between">
           {/* <h1 className="text-xl font-semibold">Xent Labs Benchmark Race</h1> */}
           <div className="flex items-center gap-2">
-            {/* <label className="cursor-pointer inline-flex items-center gap-3">
-              <input
-                type="file"
-                accept="application/json"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) onFile(f);
-                }}
-              />
-              <span className="button">Load JSON</span>
-            </label> */}
+            {/* <label className="cursor-pointer inline-flex items-center gap-3"> */}
+            {/*   <input */}
+            {/*     type="file" */}
+            {/*     accept="application/json" */}
+            {/*     className="hidden" */}
+            {/*     onChange={(e) => { */}
+            {/*       const f = e.target.files?.[0]; */}
+            {/*       if (f) onFile(f); */}
+            {/*     }} */}
+            {/*   /> */}
+            {/*   <span className="button">Load JSON</span> */}
+            {/* </label> */}
             <ThemeToggle />
+            {raceData && (
+              <button type="button" className="button" onClick={() => setStartTour(true)}>
+                Start tour
+              </button>
+            )}
           </div>
         </header>
         {error && (
@@ -96,12 +110,6 @@ export default function Home() {
         {!data && (
           <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
         )}
-{/*
-        <h1 className="text-3xl font-black max-w-xl">
-          We measure an AI's <span className="highlight">strategic reasoning</span> by
-          giving it a game and <span className="">30 attempts</span> to figure out how to win,
-          rewarding models that can explore, exploit, and <span className="highlight">improve their strategy on the fly</span>.
-        </h1> */}
 
         <h1 className="text-3xl font-black max-w-2xl">
           Find a short hint that helps predict a text, but without reusing any of its words.
@@ -112,6 +120,15 @@ export default function Home() {
         {raceData && (
           <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
             <div className="flex flex-col gap-3">
+
+              <TourGuide
+                raceData={raceData}
+                playback={playbackState}
+                setPlayback={setPlaybackState}
+                focusedModelId={focusedModelId}
+                setFocusedModelId={setFocusedModelId}
+                autoStart={startTour}
+              />
 
               <div className="flex gap-6">
                 <div className="min-w-2xl flex-1">
@@ -139,7 +156,7 @@ export default function Home() {
                 <div className="flex-1">
                   <Explainer vertical showFramework={false} />
                   {explainerRound && (<>
-                    <h3 className="font-black text-xl mb-1 mt-6">Today's text to condense</h3>
+                    <h3 className="font-black text-xl mb-1 mt-6">Today&apos;s text to condense</h3>
 
                     <div className="">
                       <Logo src={explainerRound?.logo ?? ""} className="inline-block align-middle mr-1" alt={explainerRound?.company ?? ""} size={20} />
@@ -149,7 +166,7 @@ export default function Home() {
                         style={{ color: explainerTextColor, backgroundColor: explainerBgColor }}
                       >
                         <span className="font-black mr-2">{explainerRound?.nice_model}</span>
-                        <span className="">{explainerRound?.bestMove}</span>
+                        <span className="" data-tour="explainer-move">{explainerRound?.bestMove}</span>
                       </span>
 
                       <TokenScoresBox tokenScores={explainerRound?.bestTokenScores} className="inline align-middle" />

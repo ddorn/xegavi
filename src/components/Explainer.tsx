@@ -42,15 +42,15 @@ export function Explainer({ className, vertical = false, showFramework = true, t
         )}
 
         <div className="">
-          <h3 className="font-black text-xl mb-2">Today's game: Condense</h3>
+          <h3 className="font-black text-xl mb-2" data-tour="todays-game">Today&apos;s game: Condense</h3>
           <div className="space-y-3 text-[0.975rem] leading-relaxed">
             <p>
-              <span className="font-semibold">Rules:</span> Find a short "hint" that helps the judge AI (Qwen 14B) predict a given text, but without reusing any of its words.
+              <span className="font-semibold">Rules:</span> Find a short &quot;hint&quot; that helps the judge AI (Qwen 14B) predict a given text, but without reusing any of its words.
             </p>
             <p>
               <span className="font-semibold">Scoring:</span> The score is a
               measure of how much more likely the judge is to predict the text
-              prefixed by the hint than without. It's measured in
+              prefixed by the hint than without. It&apos;s measured in
               logits (logarithms of probability) and is the sum for every token
               of the logits gained (or lost) by prepending the hint.
             </p>

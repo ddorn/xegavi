@@ -106,6 +106,7 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
       <div
         className="relative w-full overflow-hidden"
         style={{ height: containerHeight }}
+        data-tour="bar-race"
       >
         {idsSortedByValue.map((id) => {
           const it = currentFrameItems.get(id)!;

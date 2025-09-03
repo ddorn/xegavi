@@ -27,6 +27,7 @@ export function BarRaceControls({
         className="button"
         onClick={() => onPlaybackChange({ ...playback, isPlaying: !playback.isPlaying })}
         aria-label={playback.isPlaying ? "Pause" : "Play"}
+        data-tour="play-button"
       >
         {playback.isPlaying ? "Pause" : "Play"}
       </button>
@@ -46,6 +47,7 @@ export function BarRaceControls({
           value={playback.round}
           onValueChange={(v) => onPlaybackChange({ ...playback, round: v })}
           aria-label="Round"
+          data-tour="round-slider"
         />
         <span className="tabular-nums text-sm min-w-[6.5rem] text-right">
           {`Attempt ${playback.round + 1}/${totalRounds}`}

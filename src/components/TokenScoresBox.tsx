@@ -16,17 +16,23 @@ export function TokenScoresBox({ tokenScores, className }: TokenScoresBoxProps) 
   const { maxAbsScore } = useColorScale();
 
   return (
-    <div className={"whitespace-wrap text-neutral-900 dark:text-neutral-100 " + (className ?? "")}>
-      {tokenScores.map(([tok, score], i) => (
+    <div
+      className={"whitespace-wrap text-neutral-900 dark:text-neutral-100 " + (className ?? "")}
+      data-tour="explainer-tokens"
+    >
+      {tokenScores.map(([tok, score], i) => {
+        const bucket = score >= 0.5 ? "token-positive" : score <= -0.5 ? "token-negative" : "token-neutral";
+        return (
         <span
           key={i}
           title={score.toFixed(2)}
           style={{ backgroundColor: tokenScoreToColor(score, isDark, maxAbsScore) }}
-          className="px-0.5"
+            className={"px-0.5 " + bucket}
         >
           {tok}
         </span>
-      ))}
+        );
+      })}
     </div>
   );
 }
