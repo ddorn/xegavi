@@ -70,13 +70,7 @@ export default function Home() {
   const explainerBgColor = colorForCompany(explainerRound?.company ?? "");
   const explainerTextColor = pickTextColor(explainerBgColor);
 
-  const [startTour, setStartTour] = useState(false);
-  // Reset the trigger shortly after starting so the button can be reused
-  useEffect(() => {
-    if (!startTour) return;
-    const t = setTimeout(() => setStartTour(false), 100);
-    return () => clearTimeout(t);
-  }, [startTour]);
+  const [startSignal, setStartSignal] = useState(0);
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
@@ -84,21 +78,9 @@ export default function Home() {
         <header className="flex items-center justify-between">
           {/* <h1 className="text-xl font-semibold">Xent Labs Benchmark Race</h1> */}
           <div className="flex items-center gap-2">
-            {/* <label className="cursor-pointer inline-flex items-center gap-3"> */}
-            {/*   <input */}
-            {/*     type="file" */}
-            {/*     accept="application/json" */}
-            {/*     className="hidden" */}
-            {/*     onChange={(e) => { */}
-            {/*       const f = e.target.files?.[0]; */}
-            {/*       if (f) onFile(f); */}
-            {/*     }} */}
-            {/*   /> */}
-            {/*   <span className="button">Load JSON</span> */}
-            {/* </label> */}
             <ThemeToggle />
             {raceData && (
-              <button type="button" className="button" onClick={() => setStartTour(true)}>
+              <button type="button" className="button" onClick={() => setStartSignal((n) => n + 1)}>
                 Start tour
               </button>
             )}
@@ -111,11 +93,12 @@ export default function Home() {
           <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
         )}
 
-        <h1 className="text-3xl font-black max-w-2xl">
-          Find a short hint that helps predict a text, but without reusing any of its words.
-          <br />
-          In 30 attempts, who can find the best strategy?
-        </h1>
+        <div>
+          <h1 className="text-3xl font-black max-w-2xl mb-2">
+            Challenge for LLMs: find a prefix that minimises the cross entropy of a given text.
+          </h1>
+          <div className="text-xl font-semibold opacity-75">30 attempts; prefix of 10 tokens; no words from the text can be used.</div>
+        </div>
 
         {raceData && (
           <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
@@ -127,7 +110,7 @@ export default function Home() {
                 setPlayback={setPlaybackState}
                 focusedModelId={focusedModelId}
                 setFocusedModelId={setFocusedModelId}
-                autoStart={startTour}
+                startSignal={startSignal}
               />
 
               <div className="flex gap-6">
