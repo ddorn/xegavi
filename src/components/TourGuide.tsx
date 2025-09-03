@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import Shepherd from "shepherd.js";
+import Shepherd, { type Tour } from "shepherd.js";
 import "shepherd.js/dist/css/shepherd.css";
 import { offset, shift } from "@floating-ui/dom";
 import type { RaceData } from "@/lib/barRace";
@@ -26,7 +26,7 @@ export default function TourGuide({
   startSignal,
   targetId = "claude-opus-4-1-20250805",
 }: TourGuideProps) {
-  const shepherdRef = useRef<any>(null);
+  const shepherdRef = useRef<Tour | null>(null);
 
 
   // Helper: smooth scroll an element into view with padding
