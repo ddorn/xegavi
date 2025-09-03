@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TokenScoresBox } from "./TokenScoresBox";
+import { TokenMultilineText } from "./TokenMultilineText";
 
 export interface ExplainerProps {
   className?: string;
@@ -80,7 +80,7 @@ export function Explainer({ className, vertical = false, showFramework = true, t
             {/* <div className="text-sm font-semibold mb-2">Text</div> */}
             <div className="leading-7 text-lg">
               <span className="bg-amber-100 text-neutral-500 border rounded-md px-2 py-1 mr-2">PREFIX...</span>
-              <TokenScoresBox tokenScores={tokenScores} className="inline align-baseline leading-7" />
+              <TokenMultilineText tokenScores={tokenScores} numLines={0} className="inline align-baseline leading-7" />
           </div>
           </div>
         )}

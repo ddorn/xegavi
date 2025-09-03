@@ -64,6 +64,7 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
       return (
         <div style={{
           backgroundColor: 'white',
+          color: 'black',
           border: '1px solid #ccc',
           borderRadius: '4px',
           padding: '8px',

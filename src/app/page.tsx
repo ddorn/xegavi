@@ -13,7 +13,6 @@ import { useDataset } from "@/hooks/useDataset";
 import { colorForCompany, pickTextColor } from "@/lib/colors";
 import { Explainer } from "@/components/Explainer";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
-import { TokenScoresBox } from "@/components/TokenScoresBox";
 import { Logo } from "@/components/Logo";
 import TourGuide from "@/components/TourGuide";
 import { TokenMultilineText } from "@/components/TokenMultilineText";
@@ -80,11 +79,6 @@ export default function Home() {
           {/* <h1 className="text-xl font-semibold">Xent Labs Benchmark Race</h1> */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            {raceData && (
-              <button type="button" className="button" onClick={() => setStartSignal((n) => n + 1)}>
-                Start tour
-              </button>
-            )}
           </div>
         </header>
         {error && (
@@ -94,32 +88,58 @@ export default function Home() {
           <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
         )}
 
-        <div data-tour="todays-game" className="max-w-2xl ">
+        <div data-tour="todays-game" className="max-w-3xl ">
+          <div className="text-lg font-black mb-1 text-blue-600">Xent Labs Benchmark showcase</div>
           <h1 className="text-3xl font-black mb-2">
-            Challenge for LLMs: find a prefix that minimises the cross entropy of a given text.
+            Challenge for LLMs: find a surprise-minimizing prefix for a given text.
           </h1>
+
+                <div className="" data-tour="game-rules">
+                  <div className="">There are 3 rules: models have 30 attempts; prefixes are up to 10 tokens; and no words from the text can be used.</div>
+                </div>
+
         </div>
 
 
         {raceData && (
           <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
+            <div className="mb-4 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setStartSignal((n) => n + 1)}
+                className="inline-flex items-center gap-2 px-4 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-shadow shadow-md"
+              >
+                <span className="">✨</span>
+                <span>Take the 30‑second tour</span>
+              </button>
+            </div>
+
+            <h2 className="text-2xl font-black #mb-2 #text-center">See how models are doing on today's game ⬇</h2>
+
             <div className="flex flex-col gap-3 items-start">
 
-              <div className="flex gap-8">
+              <div className="flex">
 
-                <div className="" data-tour="game-text">
-                  <h2 className="text-xl font-black mb-2">Today&apos;s text to condense</h2>
-                  <TokenMultilineText tokenScores={explainerRound?.bestTokenScores ?? []} numLines={3} />
+                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-2 mb-2" data-tour="game-text">
+                    <div className="#text-xl #font-black text-right">Prefix</div>
+                    <div>
+                        <Logo src={explainerRound?.logo ?? ""} className="inline-block align-middle mr-1" alt={explainerRound?.company ?? ""} size={20} />
+
+                        <span
+                            className="px-2 mr-1 items-center align-middle"
+                            style={{ color: explainerTextColor, backgroundColor: explainerBgColor }}
+                        >
+                            <span className="font-black mr-2">{explainerRound?.nice_model}</span>
+                            <span className="overflow-scroll" data-tour="explainer-move">{explainerRound?.bestMove}</span>
+                        </span>
+                    </div>
+
+                    <div className="#text-xl #font-black text-right">Today&apos;s text</div>
+                    <div data-tour="explainer-tokens">
+                        <TokenMultilineText tokenScores={explainerRound?.bestTokenScores ?? []} numLines={3} />
+                    </div>
                 </div>
 
-                <div className="" data-tour="game-rules">
-                  <div className="text-xl font-black">3 rules:</div>
-                  <ol className="flex flex-col gap-2 list-decimal list-inside">
-                    <li>Models have 30 attempts</li>
-                    <li>Prefixes are up to 10 tokens</li>
-                    <li>No words from the text can be used</li>
-                  </ol>
-                </div>
               </div>
 
               <TourGuide
@@ -153,7 +173,7 @@ export default function Home() {
                   />
                 </div>
 
-                <div className="flex-1 #hidden">
+                <div className="flex-1 hidden">
                   <Explainer vertical showFramework={false} />
 
                   {explainerRound && (<>
@@ -170,7 +190,7 @@ export default function Home() {
                         <span className="" data-tour="explainer-move">{explainerRound?.bestMove}</span>
                       </span>
 
-                      <TokenScoresBox tokenScores={explainerRound?.bestTokenScores} className="inline align-middle" />
+                      <TokenMultilineText tokenScores={explainerRound?.bestTokenScores} numLines={0} className="inline align-middle" />
                     </div>
                   </>
                   )}
@@ -181,7 +201,7 @@ export default function Home() {
 
               <GameDisplayWithDetails game={leftRounds} className="mt-6 w-full" />
 
-              <h2 className="text-xl font-black mb-2 mx-auto">What's next?</h2>
+              <h2 className="text-xl font-black mb-2 mx-auto">What&apos;s next?</h2>
               <div className="flex gap-2 mx-auto">
                 <a href="https://xent.games" target="_blank" rel="noopener noreferrer" className="inverted-button">Play the game</a>
                 <a href="https://www.xentlabs.ai/blog/xent-benchmark" target="_blank" rel="noopener noreferrer" className="inverted-button">Read more on our blog</a>

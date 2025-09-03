@@ -150,7 +150,5 @@ input[type="range"].slider::-moz-range-thumb {
 
 /* Token emphasis during tour */
 .tour-emph {
-    outline: 2px solid rgb(250 204 21) !important;
-    box-shadow: 0 0 0 3px rgb(250 204 21 / 0.35) !important;
-    border-radius: 2px;
+    @apply ring-2 ring-black dark:ring-white z-10 ring-inset;
 }

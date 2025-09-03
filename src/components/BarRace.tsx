@@ -149,6 +149,8 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
           const commonText = isDark ? "#fff" : "#000";
           const textColorOverride = heatmapMode === "full" || heatmapMode === "overlayAligned" ? commonText : undefined;
 
+          const isSelected = id === selectedId;
+
           return (
             <motion.div
               key={id}
@@ -158,21 +160,30 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
               className="absolute left-0 right-0 will-change-transform"
               style={{ height: barHeight }}
             >
-              <Bar
-                item={it}
-                widthPct={widthPct}
-                barHeight={barHeight}
-                selected={id === selectedId}
-                logo={<Logo src={it.iconSrc} size={barHeight} alt={`${it.name} logo`} />}
-                onClick={() => {
+              <div
+                className="relative cursor-pointer"
+                style={{ height: barHeight }}
+                onClick={(e) => {
+                  e.stopPropagation();
                   setSelectedId(id);
                   onSelectedIdChange?.(id, safeRound);
                 }}
-                transitionDurationSec={transitionDurationSec}
-                solidBackground={solidBackground}
-                textColorOverride={textColorOverride}
-                slots={slots}
-              />
+              >
+                <Bar
+                  item={it}
+                  widthPct={widthPct}
+                  barHeight={barHeight}
+                  selected={isSelected}
+                  logo={<Logo src={it.iconSrc} size={barHeight} alt={`${it.name} logo`} />}
+                  transitionDurationSec={transitionDurationSec}
+                  solidBackground={solidBackground}
+                  textColorOverride={textColorOverride}
+                  slots={slots}
+                />
+                {isSelected && (
+                  <div className="pointer-events-none absolute inset-0 z-20 border-2 border-black dark:border-white" />
+                )}
+              </div>
             </motion.div>
           );
         })}

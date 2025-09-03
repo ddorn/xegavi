@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TokenScoresBox } from "@/components/TokenScoresBox";
+import { TokenMultilineText } from "@/components/TokenMultilineText";
 import { RoundModelWithBest } from "@/lib/barRace";
 import { ModelHistoryChart } from "@/components/ModelHistoryChart";
 import { colorForCompany } from "@/lib/colors";
@@ -35,7 +35,7 @@ export const ModelRoundDetails = React.memo(function ModelRoundDetails({ item, c
       <div className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
         {item.move}
       </div>
-      <TokenScoresBox tokenScores={item.token_scores} />
+      <TokenMultilineText tokenScores={item.token_scores} numLines={0} />
 
       <div className="flex items-baseline gap-2 mt-2">
         <span className="font-bold">🏆 Best so far</span>
@@ -45,7 +45,7 @@ export const ModelRoundDetails = React.memo(function ModelRoundDetails({ item, c
       <div className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
         {item.bestMove}
       </div>
-      <TokenScoresBox tokenScores={item.bestTokenScores} />
+      <TokenMultilineText tokenScores={item.bestTokenScores} numLines={0} />
     </div>
   );
 });

@@ -90,7 +90,7 @@ export default function TourGuide({
     shepherdRef.current = tour;
 
     const setRound = (r: number) => setPlayback({ ...playback, round: r, isPlaying: false });
-    const previousButton = { text: "Previous", action: tour.back };
+    const previousButton = { text: "Prev", action: tour.back };
     const nextButton = { text: "Next", action: tour.next };
 
     tour.addStep({
@@ -165,7 +165,7 @@ export default function TourGuide({
 
     tour.addStep({
       id: "play",
-      text: "Let\'s see how it improves its guesses. Click Play.",
+      text: "Let\'s see how it improves its guesses.",
       attachTo: { element: '[data-tour="play-button"]', on: "right" },
       advanceOn: { selector: '[data-tour="play-button"]', event: 'click' },
       buttons: [previousButton, nextButton],
@@ -187,8 +187,16 @@ export default function TourGuide({
     });
 
     tour.addStep({
+      id: "model-is-first",
+      text: "It reached the top after 19 tries!",
+      attachTo: { element: '[data-tour="bar-race"]', on: "top" },
+      buttons: [previousButton, nextButton],
+      when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="bar-race"]')) },
+    });
+
+    tour.addStep({
       id: "wrap",
-      text: "Now, most tokens are more likely.",
+      text: "Now, most tokens are a lot more green than before, meaning the prefix helps predict them.",
       attachTo: { element: '[data-tour="explainer-tokens"]', on: "top" },
       buttons: [previousButton, { text: "Finish", action: tour.next }],
       when: {

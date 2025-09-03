@@ -40,9 +40,8 @@ export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transi
           key={`${item.id}-inner`}
           transition={{ duration: transitionDurationSec}}
           style={solidBackground ? { backgroundColor: item.color, height: barHeight } : { height: barHeight }}
-          className={`relative overflow-hidden flex justify-between items-center border ${selected ? "" : "border-transparent"}`}
+          className={`relative overflow-hidden flex justify-between items-center border border-transparent`}
           onClick={onClick}
-          onHoverStart={onClick}
           data-bar-id={item.id}
           data-bar-name={item.name}
         >
@@ -53,7 +52,7 @@ export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transi
             title={`${item.name}: ${item.description}`}
           >
             <span className="font-black">{item.name}</span>
-            <span className="ml-2 sm:ml-4 opacity-90 overflow-hidden text-ellipsis">{item.description}</span>
+            {/* <span className="ml-2 sm:ml-4 opacity-90 overflow-hidden text-ellipsis">{item.description}</span> */}
           </div>
           <div className="mx-2 font-semibold text-xs sm:text-sm z-10" style={{ color: computedTextColor }}>
             {item.value.toFixed(1)}
