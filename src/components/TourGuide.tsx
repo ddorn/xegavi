@@ -90,11 +90,14 @@ export default function TourGuide({
     shepherdRef.current = tour;
 
     const setRound = (r: number) => setPlayback({ ...playback, round: r, isPlaying: false });
+    const previousButton = { text: "Previous", action: tour.back };
+    const nextButton = { text: "Next", action: tour.next };
 
     tour.addStep({
       id: "todays-game",
       text: "The Xent Labs benchmark is made of many games. Today is one of the simplest, Condense.",
-      attachTo: { element: '[data-tour="todays-game"]', on: "bottom" },
+      attachTo: { element: '[data-tour="game-rules"]', on: "bottom" },
+      extraHighlights: ['[data-tour="todays-game"]'],
       buttons: [{ text: "Next", action: tour.next }],
       when: {
         show: () => {
@@ -109,16 +112,16 @@ export default function TourGuide({
     tour.addStep({
       id: "task",
       text: "LLMs will compete to condense this text in a maximally informative prefix for Qwen 14B.",
-      attachTo: { element: '[data-tour="explainer-move"]', on: "top" },
-      buttons: [{ text: "Next", action: tour.next }],
-      when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="explainer-move"]')) },
+      attachTo: { element: '[data-tour="game-text"]', on: "top" },
+      buttons: [previousButton, nextButton],
+      when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="game-text"]')) },
     });
 
     tour.addStep({
       id: "first-score",
-      text: "Opus 4.1\'s first attempt isn\'t great, it scores only 10 points. Let\'s see where it is.",
+      text: "Opus 4.1\'s first attempt isn\'t great, it scores only 10 points. Let\'s see what it is.",
       attachTo: { element: '[data-bar-name="Opus 4.1"]', on: "right" },
-      buttons: [{ text: "Next", action: tour.next }],
+      buttons: [previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-bar-name="Opus 4.1"]')) },
     });
 
@@ -126,7 +129,7 @@ export default function TourGuide({
       id: "that-move",
       text: "That\'s Opus 4.1\'s move.",
       attachTo: { element: '[data-tour="explainer-move"]', on: "top" },
-      buttons: [{ text: "Next", action: tour.next }],
+      buttons: [previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="explainer-move"]')) },
     });
 
@@ -134,7 +137,7 @@ export default function TourGuide({
       id: "positives",
       text: 'Most of its points come from making " factory" more likely, but also " the end", " overseeing" and " AI".',
       attachTo: { element: '[data-tour="explainer-tokens"]', on: "top" },
-      buttons: [{ text: "Next", action: tour.next }],
+      buttons: [previousButton, nextButton],
       when: {
         show: () => {
           clearEmphasis();
@@ -149,7 +152,7 @@ export default function TourGuide({
       id: "negatives",
       text: "But its prefix made a lot of tokens less likely!",
       attachTo: { element: '[data-tour="explainer-tokens"]', on: "bottom" },
-      buttons: [{ text: "Next", action: tour.next }],
+      buttons: [previousButton, nextButton],
       when: {
         show: () => {
           clearEmphasis();
@@ -165,14 +168,14 @@ export default function TourGuide({
       text: "Let\'s see how it improves its guesses. Click Play.",
       attachTo: { element: '[data-tour="play-button"]', on: "right" },
       advanceOn: { selector: '[data-tour="play-button"]', event: 'click' },
-      buttons: [],
+      buttons: [previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="play-button"]')) },
     });
 
     tour.addStep({
       id: "watch-race",
       text: "Watch the leaderboard until it reaches the top.",
-      attachTo: { element: '[data-tour="bar-race"]', on: "left" },
+      attachTo: { element: '[data-tour="bar-race"]', on: "top" },
       when: {
         show: () => {
           // Ensure it is actually playing even if advanced with keyboard
@@ -180,14 +183,14 @@ export default function TourGuide({
           scrollIntoViewNicely(document.querySelector('[data-tour="bar-race"]'));
         },
       },
-      buttons: [],
+      buttons: [previousButton, nextButton],
     });
 
     tour.addStep({
       id: "wrap",
       text: "Now, most tokens are more likely.",
       attachTo: { element: '[data-tour="explainer-tokens"]', on: "top" },
-      buttons: [{ text: "Finish", action: tour.next }],
+      buttons: [previousButton, { text: "Finish", action: tour.next }],
       when: {
         show: () => {
           // Ensure the final state is on attempt 19 for the target model

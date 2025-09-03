@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import type { RoundModel } from "@/lib/types";
 import { TokenScoreHeatmapRow } from "@/components/TokenScoreHeatmapRow";
 import { RoundHistoryVerticalChart } from "@/components/RoundHistoryVerticalChart";
+import { motion } from "motion/react";
 
 export interface TokenScoreHeatmapProps {
   rounds: RoundModel[];
@@ -15,6 +16,7 @@ export interface TokenScoreHeatmapProps {
 
 export function TokenScoreHeatmap({ rounds, rowHeight = 16, showMove = false, chartColor = "#3b82f6", chartWidth = 140 }: TokenScoreHeatmapProps) {
   const [hover, setHover] = useState<{ roundIdx: number; tokenIdx: number; token: string; score: number } | null>(null);
+  const [hoveredRoundIdx, setHoveredRoundIdx] = useState<number | null>(null);
 
   if (!rounds.length) return null;
 
@@ -26,18 +28,29 @@ export function TokenScoreHeatmap({ rounds, rowHeight = 16, showMove = false, ch
   const scores = rounds.map(r => r.score);
 
   return (
-    <div className="" onMouseLeave={() => setHover(null)}>
+    <div className="" onMouseLeave={() => { setHover(null); setHoveredRoundIdx(null); }}>
       <div className="w-full overflow-x-auto">
-        <div className={`grid ${outerGridColsClass} items-stretch gap-x-1 min-w-full`}>
+        <div className={`grid ${outerGridColsClass} items-stretch gap-x-1 min-w-full relative`}>
+          {/* Highlight band spanning all columns */}
+          {rounds.length > 0 && (
+            <motion.div
+              className="pointer-events-none absolute left-0 right-0 bg-blue-100/50 dark:bg-blue-900/30 rounded-sm"
+              style={{ top: 0, height: rowHeight }}
+              initial={false}
+              animate={{ y: (hoveredRoundIdx ?? 0) * (rowHeight + 1), opacity: hoveredRoundIdx === null ? 0 : 1 }}
+              transition={{ duration: 0.1 }}
+            />
+          )}
+
           {/* Heatmap column: its own rows grid */}
-          <div className="min-w-0">
+          <div className="min-w-0 relative z-10">
             <div className="grid grid-cols-1 gap-y-px" style={{ gridAutoRows: `${rowHeight}px` }}>
               {rounds.map((r, roundIdx) => (
-                <div key={roundIdx} className="min-w-0">
+                <div key={roundIdx} className="min-w-0" onMouseEnter={() => setHoveredRoundIdx(roundIdx)}>
                   <div className="h-full">
                     <TokenScoreHeatmapRow
                       tokenScores={r.token_scores}
-                      onHover={(tokenIdx, token, score) => setHover({ roundIdx, tokenIdx, token, score })}
+                      onHover={(tokenIdx, token, score) => { setHover({ roundIdx, tokenIdx, token, score }); setHoveredRoundIdx(roundIdx); }}
                     />
                   </div>
                 </div>
@@ -46,16 +59,25 @@ export function TokenScoreHeatmap({ rounds, rowHeight = 16, showMove = false, ch
           </div>
 
           {/* Chart column: fixed-width content so grid uses max-content width */}
-          <div>
+          <div className="relative z-10"
+            onMouseMove={(e) => {
+              const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+              const y = e.clientY - rect.top;
+              const pitch = rowHeight + 1; // row height plus 1px grid gap used elsewhere
+              const idx = Math.max(0, Math.min(rounds.length - 1, Math.floor(y / pitch)));
+              setHoveredRoundIdx(idx);
+            }}
+            onMouseLeave={() => setHoveredRoundIdx(null)}
+          >
             <RoundHistoryVerticalChart scores={scores} rowHeight={rowHeight} width={chartWidth} color={chartColor} />
           </div>
 
           {/* Optional move column: its own rows grid */}
           {showMove && (
-            <div className="text-xs opacity-80 whitespace-nowrap">
+            <div className="text-xs opacity-80 whitespace-nowrap relative z-10">
               <div className="grid grid-cols-1 gap-y-px" style={{ gridAutoRows: `${rowHeight}px` }}>
                 {rounds.map((r, roundIdx) => (
-                  <div key={roundIdx} style={{ height: rowHeight }}>
+                  <div key={roundIdx} style={{ height: rowHeight }} onMouseEnter={() => setHoveredRoundIdx(roundIdx)}>
                     {r.move}
                   </div>
                 ))}

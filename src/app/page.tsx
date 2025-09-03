@@ -16,6 +16,7 @@ import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import { TokenScoresBox } from "@/components/TokenScoresBox";
 import { Logo } from "@/components/Logo";
 import TourGuide from "@/components/TourGuide";
+import { TokenMultilineText } from "@/components/TokenMultilineText";
 
 export default function Home() {
   const { data, error, onFile } = useDataset();
@@ -93,16 +94,33 @@ export default function Home() {
           <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
         )}
 
-        <div>
-          <h1 className="text-3xl font-black max-w-2xl mb-2">
+        <div data-tour="todays-game" className="max-w-2xl ">
+          <h1 className="text-3xl font-black mb-2">
             Challenge for LLMs: find a prefix that minimises the cross entropy of a given text.
           </h1>
-          <div className="text-xl font-semibold opacity-75">30 attempts; prefix of 10 tokens; no words from the text can be used.</div>
         </div>
+
 
         {raceData && (
           <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 items-start">
+
+              <div className="flex gap-8">
+
+                <div className="" data-tour="game-text">
+                  <h2 className="text-xl font-black mb-2">Today&apos;s text to condense</h2>
+                  <TokenMultilineText tokenScores={explainerRound?.bestTokenScores ?? []} numLines={3} />
+                </div>
+
+                <div className="" data-tour="game-rules">
+                  <div className="text-xl font-black">3 rules:</div>
+                  <ol className="flex flex-col gap-2 list-decimal list-inside">
+                    <li>Models have 30 attempts</li>
+                    <li>Prefixes are up to 10 tokens</li>
+                    <li>No words from the text can be used</li>
+                  </ol>
+                </div>
+              </div>
 
               <TourGuide
                 raceData={raceData}
@@ -112,8 +130,7 @@ export default function Home() {
                 setFocusedModelId={setFocusedModelId}
                 startSignal={startSignal}
               />
-
-              <div className="flex gap-6">
+              <div className="flex gap-6 w-full">
                 <div className="min-w-2xl flex-1">
                   <div className="border rounded-md mb-2 p-3">
                     <BarRace
@@ -123,7 +140,7 @@ export default function Home() {
                       round={playbackState.round}
                       transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
                       onSelectedIdChange={handleSelectedIdChange}
-                      heatmapMode="none"
+                      heatmapMode="prefix"
                       getTokenScores={getTokenScores}
                     />
                   </div>
@@ -136,8 +153,9 @@ export default function Home() {
                   />
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1 #hidden">
                   <Explainer vertical showFramework={false} />
+
                   {explainerRound && (<>
                     <h3 className="font-black text-xl mb-1 mt-6">Today&apos;s text to condense</h3>
 
@@ -156,12 +174,18 @@ export default function Home() {
                     </div>
                   </>
                   )}
+
                 </div>
 
               </div>
 
-              <GameDisplayWithDetails game={leftRounds} className="mt-6" />
+              <GameDisplayWithDetails game={leftRounds} className="mt-6 w-full" />
 
+              <h2 className="text-xl font-black mb-2 mx-auto">What's next?</h2>
+              <div className="flex gap-2 mx-auto">
+                <a href="https://xent.games" target="_blank" rel="noopener noreferrer" className="inverted-button">Play the game</a>
+                <a href="https://www.xentlabs.ai/blog/xent-benchmark" target="_blank" rel="noopener noreferrer" className="inverted-button">Read more on our blog</a>
+              </div>
             </div>
           </ColorScaleProvider>
         )}

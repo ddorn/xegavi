@@ -5,6 +5,10 @@
     @apply rounded-md border px-3 py-1 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800;
 }
 
+.inverted-button {
+    @apply rounded-md border px-3 py-1 text-sm bg-black text-white border-white ring-1 ring-black hover:bg-neutral-700 dark:bg-white dark:text-black dark:border-black dark:ring-white dark:hover:bg-neutral-200;
+}
+
 .highlight {
     /* @apply bg-black text-white px-1 dark:bg-white dark:text-black; */
     /* More colorful */
@@ -107,6 +111,7 @@ input[type="range"].slider::-moz-range-thumb {
     position: absolute;
     width: 100%;
     display: flex;
+    gap: 0.25rem;
     justify-content: flex-end;
     padding: 0 !important;
     margin: 0.25rem 0 !important;
@@ -135,6 +140,7 @@ input[type="range"].slider::-moz-range-thumb {
     color: black !important;
     background-color: #ffffff !important;
     border-radius: 6px !important;
+    margin: 0 !important;
 }
 
 .shepherd-cancel-icon {

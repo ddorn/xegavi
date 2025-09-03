@@ -24,7 +24,11 @@ export function Explainer({ className, vertical = false, showFramework = true, t
           <h3 className="font-black text-xl mb-2">The Framework</h3>
           <div className="space-y-3 text-[0.975rem] leading-relaxed">
             <p>
-              We built a benchmark of mathematically grounded textual games. For each game, a model gets 30 tries. After each try, it gets a score. The core test is how effectively it uses the history of its scores to make better attempts. This measures meta-learning and reasoning, not just raw knowledge.
+              We built a benchmark of mathematically grounded textual games. For
+              each game, a model gets 30 tries. After each try, it gets a score.
+              The core test is how effectively it uses the history of its scores
+              to make better attempts. This measures meta-learning and
+              reasoning, not just raw knowledge.
             </p>
             <p className="mt-4">
               {rightArrowUnicode} {" "}
@@ -42,10 +46,12 @@ export function Explainer({ className, vertical = false, showFramework = true, t
         )}
 
         <div className="">
-          <h3 className="font-black text-xl mb-2" data-tour="todays-game">Today&apos;s game: Condense</h3>
+          <h3 className="font-black text-xl mb-2" data-tour="">Today&apos;s game: Condense</h3>
           <div className="space-y-3 text-[0.975rem] leading-relaxed">
             <p>
-              <span className="font-semibold">Rules:</span> Find a short &quot;hint&quot; that helps the judge AI (Qwen 14B) predict a given text, but without reusing any of its words.
+              <span className="font-semibold">Rules:</span> Find a short
+              &quot;hint&quot; that helps the judge AI (Qwen 14B) predict a
+              given text, but without reusing any of its words.
             </p>
             <p>
               <span className="font-semibold">Scoring:</span> The score is a
