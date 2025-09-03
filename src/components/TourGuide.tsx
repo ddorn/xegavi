@@ -42,20 +42,16 @@ export default function TourGuide({
     document.querySelectorAll(".tour-emph").forEach((n) => n.classList.remove("tour-emph"));
   }
 
-  function emphasizeTopTokens(mode: "positive" | "negative", maxCount = 5) {
+  function emphasizeTopRanks(rankAttr: "data-rank-positive" | "data-rank-negative", maxCount = 5) {
     const container = document.querySelector('[data-tour="explainer-tokens"]');
     if (!container) return;
-    const selector = mode === "positive" ? ".token-positive" : ".token-negative";
-    const nodes = Array.from(container.querySelectorAll<HTMLSpanElement>(selector));
-    const sign = mode === "positive" ? 1 : -1;
-    const threshold = mode === "positive" ? 0.5 : -0.5;
-
-    const scored = nodes
-      .map((el) => ({ el, score: parseFloat(el.getAttribute("title") || "0") }))
-      .filter(({ score }) => (mode === "positive" ? score >= threshold : score <= threshold));
-
-    scored.sort((a, b) => sign * (Math.abs(b.score) - Math.abs(a.score)) || 0);
-    scored.slice(0, maxCount).forEach(({ el }) => el.classList.add("tour-emph"));
+    const nodes = Array.from(container.querySelectorAll<HTMLSpanElement>(`[${rankAttr}]`));
+    nodes
+      .filter((el) => {
+        const v = parseInt(el.getAttribute(rankAttr) || "0", 10);
+        return Number.isFinite(v) && v > 0 && v <= maxCount;
+      })
+      .forEach((el) => el.classList.add("tour-emph"));
   }
 
   // Observe round and pause at 19 after user presses Play
@@ -85,7 +81,7 @@ export default function TourGuide({
         modalOverlayOpeningPadding: 6,
         floatingUIOptions: {
           middleware: [
-            offset({mainAxis: 12, crossAxis: 0})
+            offset({mainAxis: 20, crossAxis: 0})
           ]
         }
       },
@@ -94,7 +90,6 @@ export default function TourGuide({
     shepherdRef.current = tour;
 
     const setRound = (r: number) => setPlayback({ ...playback, round: r, isPlaying: false });
-    const selectTarget = () => { if (targetId) setFocusedModelId(targetId); };
 
     tour.addStep({
       id: "todays-game",
@@ -103,7 +98,7 @@ export default function TourGuide({
       buttons: [{ text: "Next", action: tour.next }],
       when: {
         show: () => {
-          selectTarget();
+          setFocusedModelId(targetId);
           setRound(0);
           const el = document.querySelector('[data-tour="todays-game"]');
           scrollIntoViewNicely(el);
@@ -143,7 +138,7 @@ export default function TourGuide({
       when: {
         show: () => {
           clearEmphasis();
-          emphasizeTopTokens("positive", 5);
+          emphasizeTopRanks("data-rank-positive", 5);
           scrollIntoViewNicely(document.querySelector('[data-tour="explainer-tokens"]'));
         },
         hide: () => clearEmphasis(),
@@ -158,7 +153,7 @@ export default function TourGuide({
       when: {
         show: () => {
           clearEmphasis();
-          emphasizeTopTokens("negative", 5);
+          emphasizeTopRanks("data-rank-negative", 5);
           scrollIntoViewNicely(document.querySelector('[data-tour="explainer-tokens"]'));
         },
         hide: () => clearEmphasis(),
