@@ -113,7 +113,7 @@ export default function TourGuide({
     tour.addStep({
       id: "task",
       text: "LLMs will compete to condense this text in a maximally informative prefix for Qwen 14B.",
-      attachTo: { element: '[data-tour="game-text"]', on: "top" },
+      attachTo: { element: '[data-tour="explainer-tokens"]', on: "top" },
       buttons: [cancelButton, previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="game-text"]')) },
     });
