@@ -18,10 +18,10 @@ export function BarRaceControls({
   totalRounds,
   onPlaybackChange,
 }: BarRaceControlsProps) {
-  const SPEED_STEPS = [0.25, 0.5, 1, 1.5, 2] as const;
+  const SPEED_STEPS = [2, 1.5, 1, 0.5, 0.25] as const;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       <button
         type="button"
         className="button"

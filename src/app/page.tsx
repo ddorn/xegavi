@@ -34,17 +34,23 @@ export default function Home() {
     setFocusedModelId(raceData?.finalists()[0] ?? null);
   }, [raceData]);
 
+  const stepDurationMs = Math.max(1, Math.round(1000 / (playbackState.speed || 1)) * 0.7);
+
   useEffect(() => {
     const n = raceData?.roundsLength ?? 0;
     if (!playbackState.isPlaying || n === 0) return;
-    const stepMs = 1000;
-    const effective = Math.max(1, Math.round(stepMs / (playbackState.speed || 1)));
     const id = setInterval(() => {
       setPlaybackState((s) => ({ ...s, round: (s.round + 1) % Math.max(1, n) }));
-    }, effective);
+    }, stepDurationMs);
     return () => clearInterval(id);
-  }, [playbackState.isPlaying, playbackState.speed, raceData?.roundsLength]);
+  }, [playbackState.isPlaying, stepDurationMs, raceData?.roundsLength]);
 
+  // Debug: print a set of the different logo icons urls
+  useEffect(() => {
+    const logos = frames.map((frame) => frame.map((item) => item.iconSrc));
+    const uniqueLogos = [...new Set(logos.flat())];
+    console.log(uniqueLogos);
+  }, [frames]);
 
   const [focusedModelId, setFocusedModelId] = useState<string | null>(null);
 
@@ -151,18 +157,6 @@ export default function Home() {
               />
               <div className="flex gap-6 w-full">
                 <div className="flex-1">
-                  <div className="border rounded-md mb-2 p-3">
-                    <BarRace
-                      frames={frames}
-                      barHeight={24}
-                      round={playbackState.round}
-                      transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
-                      onSelectedIdChange={handleSelectedIdChange}
-                      heatmapMode="prefix"
-                      getTokenScores={getTokenScores}
-                      selectedId={focusedModelId}
-                    />
-                  </div>
 
                   <BarRaceControls
                     playback={playbackState}
@@ -170,6 +164,20 @@ export default function Home() {
                     totalRounds={raceData.roundsLength}
                     onPlaybackChange={setPlaybackState}
                   />
+
+                  <div className="border rounded-md mt-2 p-3">
+                    <BarRace
+                      frames={frames}
+                      barHeight={24}
+                      round={playbackState.round}
+                      transitionDurationSec={stepDurationMs * 0.8 / 1000}
+                      onSelectedIdChange={handleSelectedIdChange}
+                      heatmapMode="prefix"
+                      getTokenScores={getTokenScores}
+                      selectedId={focusedModelId}
+                    />
+                  </div>
+
                 </div>
 
                 {/* <div className="flex-1 hidden">
