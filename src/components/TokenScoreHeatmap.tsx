@@ -20,17 +20,13 @@ export function TokenScoreHeatmap({ rounds, rowHeight = 16, showMove = false, ch
 
   if (!rounds.length) return null;
 
-  // Outer grid: Heatmap | Chart | (optional) Move
-  const outerGridColsClass = showMove
-    ? "grid-cols-[minmax(0,_1fr)_max-content_minmax(20rem,_max-content)]"
-    : "grid-cols-[minmax(0,_1fr)_max-content]";
-
   const scores = rounds.map(r => r.score);
 
   return (
     <div className="" onMouseLeave={() => { setHover(null); setHoveredRoundIdx(null); }}>
-      <div className="w-full overflow-x-auto">
-        <div className={`grid ${outerGridColsClass} items-stretch gap-x-1 min-w-full relative`}>
+      {/* Scroll container wraps a non-wrapping horizontal flex row */}
+      <div className="relative overflow-x-auto">
+        <div className="flex flex-nowrap items-stretch gap-x-1 min-w-full w-max relative">
           {/* Highlight band spanning all columns */}
           {rounds.length > 0 && (
             <motion.div
@@ -42,24 +38,26 @@ export function TokenScoreHeatmap({ rounds, rowHeight = 16, showMove = false, ch
             />
           )}
 
-          {/* Heatmap column: its own rows grid */}
-          <div className="min-w-0 relative z-10">
+          {/* Heatmap column: flexible, grows and can shrink */}
+          <div className="relative z-10 flex-1 min-w-xs">
             <div className="grid grid-cols-1 gap-y-px" style={{ gridAutoRows: `${rowHeight}px` }}>
               {rounds.map((r, roundIdx) => (
-                <div key={roundIdx} className="min-w-0" onMouseEnter={() => setHoveredRoundIdx(roundIdx)}>
-                  <div className="h-full">
-                    <TokenScoreHeatmapRow
-                      tokenScores={r.token_scores}
-                      onHover={(tokenIdx, token, score) => { setHover({ roundIdx, tokenIdx, token, score }); setHoveredRoundIdx(roundIdx); }}
-                    />
+                  <div key={roundIdx} className="" onMouseEnter={() => setHoveredRoundIdx(roundIdx)}>
+                    <div className="h-full">
+                      <TokenScoreHeatmapRow
+                        tokenScores={r.token_scores}
+                        onHover={(tokenIdx, token, score) => { setHover({ roundIdx, tokenIdx, token, score }); setHoveredRoundIdx(roundIdx); }}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
 
-          {/* Chart column: fixed-width content so grid uses max-content width */}
-          <div className="relative z-10"
+          {/* Chart column: fixed-width, does not shrink */}
+          <div
+            className="relative z-10 shrink-0"
+            style={{ width: chartWidth }}
             onMouseMove={(e) => {
               const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
               const y = e.clientY - rect.top;
@@ -72,9 +70,9 @@ export function TokenScoreHeatmap({ rounds, rowHeight = 16, showMove = false, ch
             <RoundHistoryVerticalChart scores={scores} rowHeight={rowHeight} width={chartWidth} color={chartColor} />
           </div>
 
-          {/* Optional move column: its own rows grid */}
+          {/* Optional move column: width is max-content, does not shrink */}
           {showMove && (
-            <div className="text-xs opacity-80 whitespace-nowrap relative z-10">
+            <div className="text-xs opacity-80 whitespace-nowrap relative z-10 shrink-0  w-max">
               <div className="grid grid-cols-1 gap-y-px" style={{ gridAutoRows: `${rowHeight}px` }}>
                 {rounds.map((r, roundIdx) => (
                   <div key={roundIdx} style={{ height: rowHeight }} onMouseEnter={() => setHoveredRoundIdx(roundIdx)}>
