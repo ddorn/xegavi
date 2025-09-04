@@ -92,13 +92,14 @@ export default function TourGuide({
     const setRound = (r: number) => setPlayback({ ...playback, round: r, isPlaying: false });
     const previousButton = { text: "Prev", action: tour.back };
     const nextButton = { text: "Next", action: tour.next };
+    const cancelButton = { text: "Esc", action: tour.cancel, classes: "shepherd-button-cancel" };
 
     tour.addStep({
       id: "todays-game",
       text: "The Xent Labs benchmark is made of many games. Today is one of the simplest, Condense.",
       attachTo: { element: '[data-tour="game-rules"]', on: "bottom" },
       extraHighlights: ['[data-tour="todays-game"]'],
-      buttons: [{ text: "Next", action: tour.next }],
+      buttons: [cancelButton, nextButton],
       when: {
         show: () => {
           setFocusedModelId(targetId);
@@ -113,7 +114,7 @@ export default function TourGuide({
       id: "task",
       text: "LLMs will compete to condense this text in a maximally informative prefix for Qwen 14B.",
       attachTo: { element: '[data-tour="game-text"]', on: "top" },
-      buttons: [previousButton, nextButton],
+      buttons: [cancelButton, previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="game-text"]')) },
     });
 
@@ -121,7 +122,7 @@ export default function TourGuide({
       id: "first-score",
       text: "Opus 4.1\'s first attempt isn\'t great, it scores only 10 points. Let\'s see what it is.",
       attachTo: { element: '[data-bar-name="Opus 4.1"]', on: "right" },
-      buttons: [previousButton, nextButton],
+      buttons: [cancelButton, previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-bar-name="Opus 4.1"]')) },
     });
 
@@ -129,7 +130,7 @@ export default function TourGuide({
       id: "that-move",
       text: "That\'s Opus 4.1\'s move.",
       attachTo: { element: '[data-tour="explainer-move"]', on: "top" },
-      buttons: [previousButton, nextButton],
+      buttons: [cancelButton, previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="explainer-move"]')) },
     });
 
@@ -137,7 +138,7 @@ export default function TourGuide({
       id: "positives",
       text: 'Most of its points come from making " factory" more likely, but also " the end", " overseeing" and " AI".',
       attachTo: { element: '[data-tour="explainer-tokens"]', on: "top" },
-      buttons: [previousButton, nextButton],
+      buttons: [cancelButton, previousButton, nextButton],
       when: {
         show: () => {
           clearEmphasis();
@@ -152,7 +153,7 @@ export default function TourGuide({
       id: "negatives",
       text: "But its prefix made a lot of tokens less likely!",
       attachTo: { element: '[data-tour="explainer-tokens"]', on: "bottom" },
-      buttons: [previousButton, nextButton],
+      buttons: [cancelButton, previousButton, nextButton],
       when: {
         show: () => {
           clearEmphasis();
@@ -168,7 +169,7 @@ export default function TourGuide({
       text: "Let\'s see how it improves its guesses.",
       attachTo: { element: '[data-tour="play-button"]', on: "right" },
       advanceOn: { selector: '[data-tour="play-button"]', event: 'click' },
-      buttons: [previousButton, nextButton],
+      buttons: [cancelButton, previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="play-button"]')) },
     });
 
@@ -183,14 +184,14 @@ export default function TourGuide({
           scrollIntoViewNicely(document.querySelector('[data-tour="bar-race"]'));
         },
       },
-      buttons: [previousButton, nextButton],
+      buttons: [cancelButton, previousButton, nextButton],
     });
 
     tour.addStep({
       id: "model-is-first",
       text: "It reached the top after 19 tries!",
       attachTo: { element: '[data-tour="bar-race"]', on: "top" },
-      buttons: [previousButton, nextButton],
+      buttons: [cancelButton, previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="bar-race"]')) },
     });
 
@@ -198,7 +199,7 @@ export default function TourGuide({
       id: "wrap",
       text: "Now, most tokens are a lot more green than before, meaning the prefix helps predict them.",
       attachTo: { element: '[data-tour="explainer-tokens"]', on: "top" },
-      buttons: [previousButton, { text: "Finish", action: tour.next }],
+      buttons: [cancelButton, previousButton, { text: "Finish", action: tour.next }],
       when: {
         show: () => {
           // Ensure the final state is on attempt 19 for the target model

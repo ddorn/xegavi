@@ -142,10 +142,13 @@ input[type="range"].slider::-moz-range-thumb {
     border-radius: 6px !important;
     margin: 0 !important;
 }
+.shepherd-button:hover {
+    @apply bg-blue-100!;
+}
 
-.shepherd-cancel-icon {
-    color: currentColor !important;
-    opacity: 0.7 !important;
+.shepherd-button.shepherd-button-cancel {
+    /* This button is on the other side of the footer (left) */
+    margin-right: auto !important;
 }
 
 /* Token emphasis during tour */
