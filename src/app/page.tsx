@@ -114,14 +114,13 @@ export default function Home() {
               </button>
             </div>
 
-            <h2 className="text-2xl font-black #mb-2 #text-center">See how models are doing on today's game ⬇</h2>
+            <h2 className="text-2xl font-black #mb-2 #text-center">See how models are doing on today&apos;s game ⬇</h2>
 
             <div className="flex flex-col gap-3 items-start">
-
               <div className="flex">
 
-                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-2 mb-2" data-tour="game-text">
-                    <div className="#text-xl #font-black text-right">Prefix</div>
+                <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-2 gap-y-2 mb-2" data-tour="game-text">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Prefix:</div>
                     <div>
                         <Logo src={explainerRound?.logo ?? ""} className="inline-block align-middle mr-1" alt={explainerRound?.company ?? ""} size={20} />
 
@@ -134,7 +133,7 @@ export default function Home() {
                         </span>
                     </div>
 
-                    <div className="#text-xl #font-black text-right">Today&apos;s text</div>
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Today&apos;s text:</div>
                     <div data-tour="explainer-tokens">
                         <TokenMultilineText tokenScores={explainerRound?.bestTokenScores ?? []} numLines={3} />
                     </div>
@@ -151,7 +150,7 @@ export default function Home() {
                 startSignal={startSignal}
               />
               <div className="flex gap-6 w-full">
-                <div className="min-w-2xl flex-1">
+                <div className="flex-1">
                   <div className="border rounded-md mb-2 p-3">
                     <BarRace
                       frames={frames}
@@ -173,7 +172,7 @@ export default function Home() {
                   />
                 </div>
 
-                <div className="flex-1 hidden">
+                {/* <div className="flex-1 hidden">
                   <Explainer vertical showFramework={false} />
 
                   {explainerRound && (<>
@@ -195,17 +194,20 @@ export default function Home() {
                   </>
                   )}
 
-                </div>
+                </div> */}
 
               </div>
 
               <GameDisplayWithDetails game={leftRounds} className="mt-6 w-full" />
 
-              <h2 className="text-xl font-black mb-2 mx-auto">What&apos;s next?</h2>
-              <div className="flex gap-2 mx-auto">
-                <a href="https://xent.games" target="_blank" rel="noopener noreferrer" className="inverted-button">Play the game</a>
-                <a href="https://www.xentlabs.ai/blog/xent-benchmark" target="_blank" rel="noopener noreferrer" className="inverted-button">Read more on our blog</a>
+              <div className="my-12 self-center text-center">
+                <h2 className="text-xl font-black mb-2">What&apos;s next?</h2>
+                <div className="flex gap-2">
+                  <a href="https://xent.games" target="_blank" rel="noopener noreferrer" className="inverted-button">Play the game</a>
+                  <a href="https://www.xentlabs.ai/blog/xent-benchmark" target="_blank" rel="noopener noreferrer" className="inverted-button">Read more on our blog</a>
+                </div>
               </div>
+
             </div>
           </ColorScaleProvider>
         )}
