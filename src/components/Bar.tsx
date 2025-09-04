@@ -8,7 +8,6 @@ export interface BarProps {
   item: BarRaceItem;
   widthPct: number; // 0..100
   barHeight: number;
-  selected: boolean;
   logo?: React.ReactNode;
   onClick?: () => void;
   transitionDurationSec?: number;
@@ -21,7 +20,7 @@ export interface BarProps {
   };
 }
 
-export function Bar({ item, widthPct, barHeight, logo, selected, onClick, transitionDurationSec = 1, textColorOverride, solidBackground = true, slots }: BarProps) {
+export function Bar({ item, widthPct, barHeight, logo, onClick, transitionDurationSec = 1, textColorOverride, solidBackground = true, slots }: BarProps) {
   const computedTextColor = textColorOverride ?? pickTextColor(item.color);
   const width = `${Math.max(0, Math.min(100, widthPct)).toFixed(4)}%`;
   return (

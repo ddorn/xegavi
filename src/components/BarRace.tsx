@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { BarRaceFrame } from "@/lib/barRace";
 import { Bar } from "@/components/Bar";
 import { Logo } from "@/components/Logo";
@@ -12,12 +12,12 @@ import { useTheme } from "next-themes";
 export interface BarRaceProps {
   frames: BarRaceFrame[];
   round: number;
-  topN?: number;
   barHeight?: number;
   transitionDurationSec?: number;
   onSelectedIdChange?: (id: string | null, round: number) => void;
   heatmapMode?: HeatmapMode;
   getTokenScores?: (id: string, round: number) => TokenScores | null;
+  selectedId?: string | null;
 }
 
 const PREFIX_WIDTH_PCT = 30;
@@ -47,8 +47,7 @@ function HeatmapFooter({ tokenScores, height = 8 }: { tokenScores: TokenScores; 
   );
 }
 
-export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDurationSec = 0.6, onSelectedIdChange, heatmapMode = "none", getTokenScores }: BarRaceProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+export function BarRace({ frames, round, barHeight = 36, transitionDurationSec = 0.6, onSelectedIdChange, heatmapMode = "none", getTokenScores, selectedId }: BarRaceProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const nRounds = frames.length;
@@ -59,26 +58,24 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
   const rowGapPx = barHeight / 3;
   const rowSlotHeight = barHeight + rowGapPx;
 
-
-  const { currentFrameItems, idsSortedByName, idsSortedByValue, maxValue } = useMemo(() => {
+  const { currentFrameItems, idsSortedByValue, maxValue } = useMemo(() => {
     const frame = frames[safeRound] ?? [];
     const arr = [...frame];
     arr.sort((a, b) => {
       if (b.value !== a.value) return b.value - a.value;
       return a.name.localeCompare(b.name);
     });
-    const idsSortedByName = arr.map((it) => it.id);
-    idsSortedByName.sort((a, b) => a.localeCompare(b));
     const idsSortedByValue = arr.map((it) => it.id);
     const maxValue = arr.reduce((m, it) => Math.max(m, it.value), 0);
     const currentFrameItems = new Map(frame.map((it) => [it.id, it]));
-    return { currentFrameItems, idsSortedByName, idsSortedByValue, maxValue };
-  }, [frames, safeRound, nRounds, topN]);
+    return { currentFrameItems, idsSortedByValue, maxValue };
+  }, [frames, safeRound, nRounds]);
 
-  const containerHeight = Math.max(0, topN * barHeight + Math.max(0, topN - 1) * rowGapPx);
+  const numRows = idsSortedByValue.length;
+  const containerHeight = Math.max(0, numRows * barHeight + Math.max(0, numRows - 1) * rowGapPx);
 
   // Compute visible ids and their base fill width percentages
-  const visibleIds = useMemo(() => idsSortedByValue.slice(0, topN), [idsSortedByValue, topN]);
+  const visibleIds = useMemo(() => idsSortedByValue, [idsSortedByValue]);
   const baseWidthPctById = useMemo(() => {
     const map: Record<string, number> = {};
     for (const id of visibleIds) {
@@ -99,21 +96,18 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
     <div
       className="w-full"
       onClick={() => {
-        setSelectedId(null);
         onSelectedIdChange?.(null, safeRound);
       }}
     >
       <div
-        className="relative w-full overflow-hidden"
+        className="relative w-full"
         style={{ height: containerHeight }}
         data-tour="bar-race"
       >
         {idsSortedByValue.map((id) => {
           const it = currentFrameItems.get(id)!;
           const rank = idsSortedByValue.indexOf(id);
-          const isTop = rank < topN;
-          const targetIndex = isTop ? rank : topN; // Non-topN placed just below the stage
-          const y = targetIndex * rowSlotHeight;
+          const y = rank * rowSlotHeight;
           const widthPct = maxValue > 0 ? (it.value / maxValue) * 100 : 0;
 
           const tokenScores = getTokenScores?.(id, safeRound) ?? null;
@@ -165,7 +159,6 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
                 style={{ height: barHeight }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedId(id);
                   onSelectedIdChange?.(id, safeRound);
                 }}
               >
@@ -173,7 +166,6 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
                   item={it}
                   widthPct={widthPct}
                   barHeight={barHeight}
-                  selected={isSelected}
                   logo={<Logo src={it.iconSrc} size={barHeight} alt={`${it.name} logo`} />}
                   transitionDurationSec={transitionDurationSec}
                   solidBackground={solidBackground}
@@ -181,7 +173,7 @@ export function BarRace({ frames, round, topN = 10, barHeight = 36, transitionDu
                   slots={slots}
                 />
                 {isSelected && (
-                  <div className="pointer-events-none absolute inset-0 z-20 border-2 border-black dark:border-white" />
+                  <div className="pointer-events-none absolute top-0 left-0 h-full w-full ring-2 ring-black dark:ring-white ring-offset-2" />
                 )}
               </div>
             </motion.div>

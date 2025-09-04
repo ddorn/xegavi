@@ -119,7 +119,7 @@ export default function Home() {
             <div className="flex flex-col gap-3 items-start">
               <div className="flex">
 
-                <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-2 gap-y-2 mb-2" >
+                <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-baseline gap-x-2 gap-y-2 mb-2" >
                     <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Prefix:</div>
                     <div>
                         <Logo src={explainerRound?.logo ?? ""} className="inline-block align-middle mr-1" alt={explainerRound?.company ?? ""} size={20} />
@@ -154,13 +154,13 @@ export default function Home() {
                   <div className="border rounded-md mb-2 p-3">
                     <BarRace
                       frames={frames}
-                      topN={frames[0].length}
                       barHeight={24}
                       round={playbackState.round}
                       transitionDurationSec={Math.min(1, 1000 / (playbackState.speed || 1)) * 0.8}
                       onSelectedIdChange={handleSelectedIdChange}
                       heatmapMode="prefix"
                       getTokenScores={getTokenScores}
+                      selectedId={focusedModelId}
                     />
                   </div>
 
