@@ -4,7 +4,6 @@ import React from "react";
 import { TokenMultilineText } from "@/components/TokenMultilineText";
 import { RoundModelWithBest } from "@/lib/barRace";
 import { ModelHistoryChart } from "@/components/ModelHistoryChart";
-import { colorForCompany } from "@/lib/colors";
 
 export interface ModelRoundDetailsProps {
   item: RoundModelWithBest;
@@ -15,13 +14,13 @@ export interface ModelRoundDetailsProps {
 
 export const ModelRoundDetails = React.memo(function ModelRoundDetails({ item, currentRoundIndex, history, onRoundChange }: ModelRoundDetailsProps) {
   if (!item) return null;
-  const companyColor = colorForCompany(item.company);
+  const companyColor = item.color;
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {item.logo ? <img src={item.logo} alt={`${item.nice_model ?? item.model} logo`} width={36} height={36} style={{ width: 36, height: 36 }} /> : null}
-        <div className="font-semibold">{item.nice_model ?? item.model}</div>
+        {item.logoSrc ? <img src={item.logoSrc} alt={`${item.niceModel ?? item.model} logo`} width={36} height={36} style={{ width: 36, height: 36 }} /> : null}
+        <div className="font-semibold">{item.niceModel ?? item.model}</div>
       </div>
 
       <div style={{ color: companyColor }}>

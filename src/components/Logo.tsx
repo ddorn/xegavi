@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { modelLogoPath, niceModelName } from "@/lib/model-metadata";
 
 export interface LogoProps {
-  src?: string;
+  model: string;
   size?: number;
-  alt: string;
   className?: string;
 }
 
-export function Logo({ src, size, alt, className }: LogoProps) {
+export function Logo({ model, size, className }: LogoProps) {
+  const src = modelLogoPath(model) ?? undefined;
+  const alt = `${niceModelName(model)} logo`;
+
   const [ok, setOk] = useState<boolean>(false);
 
   useEffect(() => {

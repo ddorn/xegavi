@@ -6,9 +6,6 @@ export type Playback = { isPlaying: boolean; round: number; speed: number };
 
 export const RoundModelSchema = z.object({
   model: z.string(),
-  nice_model: z.string(),
-  company: z.string(),
-  logo: z.string().optional(),
   score: z.number().finite(),
   move: z.string(),
   token_scores: z.array(z.tuple([z.string(), z.number()])),

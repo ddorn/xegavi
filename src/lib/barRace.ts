@@ -1,11 +1,16 @@
 import type { Dataset, RoundModel, TokenScores } from "@/lib/types";
-import { colorForCompany } from "@/lib/colors";
+import { deriveModelPresentation } from "@/lib/model-metadata";
 
 export interface RoundModelWithBest extends RoundModel {
   bestRoundIndex: number;
   bestScore: number;
   bestMove: string;
   bestTokenScores: TokenScores;
+  // Derived presentation fields for convenience
+  niceModel: string;
+  company: string;
+  color: string;
+  logoSrc: string | null;
 }
 
 export type AugmentedFrame = Record<string, RoundModelWithBest>;
@@ -104,12 +109,18 @@ export class RaceData {
 
         bestIdxByModel[model] = bestIdx;
 
+        const { niceModel, company, color, logoSrc } = deriveModelPresentation(model);
+
         frame[model] = {
           ...current,
           bestRoundIndex: bestIdx,
           bestScore: best.score,
           bestMove: best.move,
           bestTokenScores: best.token_scores,
+          niceModel,
+          company,
+          color,
+          logoSrc,
         };
       }
 

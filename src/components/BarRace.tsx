@@ -166,7 +166,7 @@ export function BarRace({ frames, round, barHeight = 36, transitionDurationSec =
                   item={it}
                   widthPct={widthPct}
                   barHeight={barHeight}
-                  logo={<Logo src={it.iconSrc} size={barHeight} alt={`${it.name} logo`} />}
+                  logo={<Logo model={it.id} size={barHeight} />}
                   transitionDurationSec={transitionDurationSec}
                   solidBackground={solidBackground}
                   textColorOverride={textColorOverride}

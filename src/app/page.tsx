@@ -10,7 +10,7 @@ import { BarRaceControls } from "@/components/BarRaceControls";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScores } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
-import { colorForCompany, pickTextColor } from "@/lib/colors";
+import { pickTextColor } from "@/lib/colors";
 import { Explainer } from "@/components/Explainer";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import { Logo } from "@/components/Logo";
@@ -73,7 +73,7 @@ export default function Home() {
   }, [raceData]);
 
   const explainerRound = focusedModelId && raceData ? raceData.roundsFor(focusedModelId)[safeRound] : null;
-  const explainerBgColor = colorForCompany(explainerRound?.company ?? "");
+  const explainerBgColor = explainerRound?.color ?? "#888";
   const explainerTextColor = pickTextColor(explainerBgColor);
 
   const [startSignal, setStartSignal] = useState(0);
@@ -128,13 +128,13 @@ export default function Home() {
                 <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-baseline gap-x-2 gap-y-2 mb-2" >
                     <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Prefix:</div>
                     <div>
-                        <Logo src={explainerRound?.logo ?? ""} className="inline-block align-middle mr-1" alt={explainerRound?.company ?? ""} size={20} />
+                    <Logo model={explainerRound?.model ?? ""} className="inline-block align-middle mr-1" size={20} />
 
                         <span
                             className="px-2 mr-1 items-center align-middle"
                             style={{ color: explainerTextColor, backgroundColor: explainerBgColor }}
                         >
-                            <span className="font-black mr-2">{explainerRound?.nice_model}</span>
+                      <span className="font-black mr-2">{explainerRound?.niceModel ?? explainerRound?.model}</span>
                             <span className="overflow-scroll" data-tour="explainer-move">{explainerRound?.bestMove}</span>
                         </span>
                     </div>
@@ -187,13 +187,13 @@ export default function Home() {
                     <h3 className="font-black text-xl mb-1 mt-6">Today&apos;s text to condense</h3>
 
                     <div className="">
-                      <Logo src={explainerRound?.logo ?? ""} className="inline-block align-middle mr-1" alt={explainerRound?.company ?? ""} size={20} />
+                      <Logo model={explainerRound?.model ?? ""} className="inline-block align-middle mr-1" size={20} />
 
                       <span
                         className="px-2 mr-1 items-center align-middle"
                         style={{ color: explainerTextColor, backgroundColor: explainerBgColor }}
                       >
-                        <span className="font-black mr-2">{explainerRound?.nice_model}</span>
+                        <span className="font-black mr-2">{explainerRound?.niceModel}</span>
                         <span className="" data-tour="explainer-move">{explainerRound?.bestMove}</span>
                       </span>
 
@@ -230,11 +230,12 @@ export function buildFrames(augmented: AugmentedFrame[]): BarRaceFrame[] {
   return augmented.map((frame) =>
     Object.values(frame).map((it) => ({
       id: it.model,
-      name: it.nice_model ?? it.model,
+      name: it.niceModel,
       description: it.bestMove,
       value: it.bestScore,
-      color: colorForCompany(it.company),
-      iconSrc: it.logo ?? "",
+      color: it.color,
+      iconSrc: it.logoSrc ?? "",
+      company: it.company,
     }))
   );
 }

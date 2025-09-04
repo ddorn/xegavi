@@ -28,22 +28,22 @@ export function GameDisplayWithDetails({ game, subtitle = defaultSubtitle, class
 
   return (
     <div className={className}>
-        <div className="flex items-center gap-3 sm:gap-4">
-            <div className="rounded-xl h-14 bg-white" >
-                <Logo src={last.logo} alt={last.nice_model} />
-            </div>
-            <div className="leading-tight">
-                <h2 className="font-black text-2xl sm:text-3xl">
-                {last.nice_model} gets to <span className="tabular-nums">{formatScore(bestScore)}</span> points after {" "}
-                <span className="tabular-nums">{tries}</span> attempts
-                </h2>
-                <p className="text-sm opacity-80">{subtitle}</p>
-            </div>
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="rounded-xl h-14 bg-white" >
+          <Logo model={last.model} />
         </div>
+        <div className="leading-tight">
+          <h2 className="font-black text-2xl sm:text-3xl">
+            {last.niceModel} gets to <span className="tabular-nums">{formatScore(bestScore)}</span> points after {" "}
+            <span className="tabular-nums">{tries}</span> attempts
+          </h2>
+          <p className="text-sm opacity-80">{subtitle}</p>
+        </div>
+      </div>
 
-        <div className="mt-6">
-            <TokenScoreHeatmap rounds={game} showMove={true} />
-        </div>
+      <div className="mt-6">
+        <TokenScoreHeatmap rounds={game} showMove={true} />
+      </div>
     </div>
   );
 }
