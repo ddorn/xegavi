@@ -5,22 +5,30 @@ import { type Playback } from "@/lib/types";
 import { BarRace } from "@/components/BarRace";
 import type { AugmentedFrame, BarRaceFrame } from "@/lib/barRace";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { RaceData } from "@/lib/barRace";
 import { BarRaceControls } from "@/components/BarRaceControls";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScores } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
-import { pickTextColor } from "@/lib/colors";
-import { Explainer } from "@/components/Explainer";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
-import { Logo } from "@/components/Logo";
 import TourGuide from "@/components/TourGuide";
-import { TokenMultilineText } from "@/components/TokenMultilineText";
 
 export default function Home() {
-  const { data, error, onFile } = useDataset();
+  const { game, raceData, error, onFile, loadFromUrl } = useDataset();
 
-  const raceData = useMemo(() => (data ? new RaceData(data) : null), [data]);
+  const [gameFiles, setGameFiles] = useState<Array<{ name: string | null; url: string; }>>([]);
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/games", { cache: "no-store" });
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const json = await res.json();
+        setGameFiles(json.files ?? []);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, []);
+
   const frames = useMemo(() => (raceData ? buildFrames(raceData.augmented) : []), [raceData]);
 
   const [playbackState, setPlaybackState] = useState<Playback>({ isPlaying: true, round: 0, speed: 1 });
@@ -45,13 +53,6 @@ export default function Home() {
     return () => clearInterval(id);
   }, [playbackState.isPlaying, stepDurationMs, raceData?.roundsLength]);
 
-  // Debug: print a set of the different logo icons urls
-  useEffect(() => {
-    const logos = frames.map((frame) => frame.map((item) => item.iconSrc));
-    const uniqueLogos = [...new Set(logos.flat())];
-    console.log(uniqueLogos);
-  }, [frames]);
-
   const [focusedModelId, setFocusedModelId] = useState<string | null>(null);
 
   const handleSelectedIdChange = useCallback((id: string | null, round: number) => {
@@ -59,7 +60,6 @@ export default function Home() {
       setFocusedModelId(id);
     }
   }, []);
-
 
   const safeRound = useMemo(() => {
     const maxIdx = Math.max(0, (raceData?.augmented.length ?? 0) - 1);
@@ -72,42 +72,50 @@ export default function Home() {
     return raceData ? raceData.tokenScoresAt(id, round) : null;
   }, [raceData]);
 
-  const explainerRound = focusedModelId && raceData ? raceData.roundsFor(focusedModelId)[safeRound] : null;
-  const explainerBgColor = explainerRound?.color ?? "#888";
-  const explainerTextColor = pickTextColor(explainerBgColor);
-
   const [startSignal, setStartSignal] = useState(0);
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
         <header className="flex items-center justify-between">
-          {/* <h1 className="text-xl font-semibold">Xent Labs Benchmark Race</h1> */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <select
+              className="border rounded-md px-2 py-1 bg-white dark:bg-neutral-800 dark:border-neutral-700 text-sm"
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v) {
+                  loadFromUrl(v);
+                }
+              }}
+              defaultValue="/games/Condense_14.json"
+              title="Load a sample game dataset"
+            >
+              <option value="" disabled>Load sample…</option>
+              {gameFiles.map((f) => (
+                <option key={f.url} value={f.url}>{f.name}</option>
+              ))}
+            </select>
           </div>
         </header>
         {error && (
           <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>
         )}
-        {!data && (
-          <div className="text-sm opacity-75">Load a dataset JSON object: {"{ version, rounds }"}.</div>
+
+        {game && (
+          <div data-tour="todays-game" className="max-w-3xl ">
+            <div className="text-lg font-black mb-1 text-blue-600">Xent Labs Benchmark showcase</div>
+            <h1 className="text-3xl font-black mb-2">
+              {game.pageTitle}
+            </h1>
+
+            <div className="" data-tour="game-rules">
+              <div className="">{game.subtitle}</div>
+            </div>
+          </div>
         )}
 
-        <div data-tour="todays-game" className="max-w-3xl ">
-          <div className="text-lg font-black mb-1 text-blue-600">Xent Labs Benchmark showcase</div>
-          <h1 className="text-3xl font-black mb-2">
-            Challenge for LLMs: find a surprise-minimizing prefix for a given text.
-          </h1>
-
-                <div className="" data-tour="game-rules">
-                  <div className="">There are 3 rules: models have 30 attempts; prefixes are up to 10 tokens; and no words from the text can be used.</div>
-                </div>
-
-        </div>
-
-
-        {raceData && (
+        {raceData && game && (
           <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
             <div className="mb-4 flex justify-center">
               <button
@@ -124,27 +132,7 @@ export default function Home() {
 
             <div className="flex flex-col gap-3 items-start">
               <div className="flex">
-
-                <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-baseline gap-x-2 gap-y-2 mb-2" >
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Prefix:</div>
-                    <div>
-                    <Logo model={explainerRound?.model ?? ""} className="inline-block align-middle mr-1" size={20} />
-
-                        <span
-                            className="px-2 mr-1 items-center align-middle"
-                            style={{ color: explainerTextColor, backgroundColor: explainerBgColor }}
-                        >
-                      <span className="font-black mr-2">{explainerRound?.niceModel ?? explainerRound?.model}</span>
-                            <span className="overflow-scroll" data-tour="explainer-move">{explainerRound?.bestMove}</span>
-                        </span>
-                    </div>
-
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Today&apos;s text:</div>
-                    <div data-tour="explainer-tokens">
-                        <TokenMultilineText tokenScores={explainerRound?.bestTokenScores ?? []} numLines={3} />
-                    </div>
-                </div>
-
+                {game.roundDisplay({ raceData, focusedModelId, round: safeRound })}
               </div>
 
               <TourGuide
@@ -180,30 +168,6 @@ export default function Home() {
 
                 </div>
 
-                {/* <div className="flex-1 hidden">
-                  <Explainer vertical showFramework={false} />
-
-                  {explainerRound && (<>
-                    <h3 className="font-black text-xl mb-1 mt-6">Today&apos;s text to condense</h3>
-
-                    <div className="">
-                      <Logo model={explainerRound?.model ?? ""} className="inline-block align-middle mr-1" size={20} />
-
-                      <span
-                        className="px-2 mr-1 items-center align-middle"
-                        style={{ color: explainerTextColor, backgroundColor: explainerBgColor }}
-                      >
-                        <span className="font-black mr-2">{explainerRound?.niceModel}</span>
-                        <span className="" data-tour="explainer-move">{explainerRound?.bestMove}</span>
-                      </span>
-
-                      <TokenMultilineText tokenScores={explainerRound?.bestTokenScores} numLines={0} className="inline align-middle" />
-                    </div>
-                  </>
-                  )}
-
-                </div> */}
-
               </div>
 
               <GameDisplayWithDetails game={leftRounds} className="mt-6 w-full" />
@@ -223,7 +187,6 @@ export default function Home() {
     </div>
   );
 }
-
 
 /** Build presentation frames from augmented data. */
 export function buildFrames(augmented: AugmentedFrame[]): BarRaceFrame[] {

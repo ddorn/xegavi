@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type React from "react";
+import type { RaceData } from "@/lib/barRace";
 
 export type TokenScores = Array<[string, number]>;
 
@@ -19,3 +21,18 @@ export const DatasetSchema = z.object({
 export type Dataset = z.infer<typeof DatasetSchema>;
 
 export type HeatmapMode = "none" | "prefix" | "full" | "bottomStripe" | "overlayAligned";
+
+export type RoundDisplayProps = {
+  raceData: RaceData;
+  focusedModelId: string | null;
+  round: number;
+};
+
+export type GameDisplay = {
+  name: string;
+  pageTitle: string;
+  subtitle: React.ReactNode;
+  /// Component factory to display the round header (prefix + highlighted tokens)
+  roundDisplay: (props: RoundDisplayProps) => React.ReactNode;
+  barRaceData: (data: unknown) => RaceData | null;
+};
