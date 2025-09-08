@@ -1,17 +1,17 @@
 "use client";
 
 import React from "react";
-import type { TokenScores } from "@/lib/types";
+import type { TokenScores, TokenScoresList } from "@/lib/types";
 import { useTokenLayout } from "@/hooks/useTokenLayout";
 import { tokenScoreToColor } from "@/lib/colors";
 import { useTheme } from "next-themes";
 import { useColorScale } from "./ColorScaleContext";
 
 export interface TokenMultilineTextProps {
-    tokenScores: TokenScores;
+    tokenScoresList: TokenScoresList;
     numLines?: number; // if 0 => free-flow mode
     paddingPx?: number;
-    onHover?: (tokenIdx: number, token: string, score: number) => void;
+    onHover?: (tokenIdx: number, token: string, score: number, seqIdx: number) => void;
     className?: string;
 }
 
@@ -57,32 +57,37 @@ function buildDataAttrs(index: number, score: number, ranks: RankMaps): Record<s
     return attrs;
 }
 
-export function TokenMultilineText({ tokenScores, numLines = 1, paddingPx = 4, onHover, className }: TokenMultilineTextProps) {
+export function TokenMultilineText({ tokenScoresList, numLines = 1, paddingPx = 4, onHover, className }: TokenMultilineTextProps) {
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === "dark";
     const { maxAbsScore } = useColorScale();
 
     const isFreeFlow = numLines === 0;
-    const { containerRef, lines, bgByIndex } = useTokenLayout(tokenScores, isFreeFlow ? 1 : numLines, paddingPx);
 
-    const ranks = computeRankMaps(tokenScores, POS_THRESHOLD, NEG_THRESHOLD);
-
-    // Free-flow mode (TokenScoresBox behavior)
+    // Free-flow mode: render sequences inline with a small spacer between them
     if (isFreeFlow) {
         return (
             <div className={"whitespace-wrap text-neutral-900 dark:text-neutral-100 " + (className ?? "")}>
-                {tokenScores.map(([tok, score], i) => {
-                    const bucket = classifyBucket(score);
-                    const attrs = buildDataAttrs(i, score, ranks);
+                {tokenScoresList.map((tokenScores, seqIdx) => {
+                    const ranks = computeRankMaps(tokenScores, POS_THRESHOLD, NEG_THRESHOLD);
                     return (
-                        <span
-                            key={i}
-                            title={score.toFixed(2)}
-                            style={{ backgroundColor: tokenScoreToColor(score, isDark, maxAbsScore) }}
-                            className={"px-0.5 " + bucket}
-                            {...attrs}
-                        >
-                            {tok}
+                        <span key={seqIdx}>
+                            {tokenScores.map(([tok, score], i) => {
+                                const bucket = classifyBucket(score);
+                                const attrs = buildDataAttrs(i, score, ranks);
+                                return (
+                                    <span
+                                        key={i}
+                                        title={score.toFixed(2)}
+                                        style={{ backgroundColor: tokenScoreToColor(score, isDark, maxAbsScore) }}
+                                        className={"px-0.5 " + bucket}
+                                        {...attrs}
+                                    >
+                                        {tok}
+                                    </span>
+                                );
+                            })}
+                            {seqIdx < tokenScoresList.length - 1 ? <span className="px-1" /> : null}
                         </span>
                     );
                 })}
@@ -90,29 +95,38 @@ export function TokenMultilineText({ tokenScores, numLines = 1, paddingPx = 4, o
         );
     }
 
-    // Multiline (wrapped) mode
+    // Multiline (wrapped) mode: stack each sequence vertically, each with its own wrapping layout
+    const n = Math.max(1, tokenScoresList.length);
     return (
-        <div ref={containerRef} className={"overflow-x-auto whitespace-nowrap " + (className ?? "")}>
-            {lines.map((line, lineIdx) => (
-                <div key={lineIdx}>
-                    {line.map(({ index }) => {
-                        const [tok, score] = tokenScores[index];
-                        const attrs = buildDataAttrs(index, score, ranks);
-                        return (
-                            <span
-                                key={index}
-                                className="inline-block align-top"
-                                style={{ backgroundColor: bgByIndex[index], paddingRight: `${paddingPx}px`, paddingLeft: `${paddingPx}px` }}
-                                onMouseEnter={() => onHover?.(index, tok, score)}
-                                title={tok}
-                                {...attrs}
-                            >
-                                {tok}
-                            </span>
-                        );
-                    })}
-                </div>
-            ))}
+        <div className={"overflow-x-auto whitespace-nowrap flex flex-col " + (className ?? "")}>
+            {tokenScoresList.map((tokenScores, seqIdx) => {
+                const { containerRef, lines, bgByIndex } = useTokenLayout(tokenScores, numLines, paddingPx);
+                const ranks = computeRankMaps(tokenScores, POS_THRESHOLD, NEG_THRESHOLD);
+                return (
+                    <div key={seqIdx} ref={containerRef}>
+                        {lines.map((line, lineIdx) => (
+                            <div key={lineIdx}>
+                                {line.map(({ index }) => {
+                                    const [tok, score] = tokenScores[index];
+                                    const attrs = buildDataAttrs(index, score, ranks);
+                                    return (
+                                        <span
+                                            key={index}
+                                            className="inline-block align-top"
+                                            style={{ backgroundColor: bgByIndex[index], paddingRight: `${paddingPx}px`, paddingLeft: `${paddingPx}px` }}
+                                            onMouseEnter={() => onHover?.(index, tok, score, seqIdx)}
+                                            title={tok}
+                                            {...attrs}
+                                        >
+                                            {tok}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                );
+            })}
         </div>
     );
 }

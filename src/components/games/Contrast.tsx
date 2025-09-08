@@ -5,7 +5,7 @@ import { pickTextColor } from "@/lib/colors";
 import { RaceData } from "@/lib/barRace";
 import { ensureIsSingleGame } from "@/lib/dataset";
 
-function CondenseRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayProps) {
+function ContrastRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayProps) {
     const explainerRound = focusedModelId ? raceData.roundsFor(focusedModelId)[round] : null;
     const bg = explainerRound?.color ?? "#888";
     const fg = pickTextColor(bg);
@@ -22,21 +22,22 @@ function CondenseRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayP
                     </span>
                 </div>
 
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Today&apos;s text:</div>
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Positive text:</div>
                 <div data-tour="explainer-tokens">
-                    <TokenMultilineText tokenScoresList={explainerRound?.bestTokenScores ?? []} numLines={3} />
+                    <TokenMultilineText tokenScoresList={[explainerRound?.bestTokenScores?.[0] ?? []]} numLines={2} />
+                </div>
+
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Negative text:</div>
+                <div>
+                    <TokenMultilineText tokenScoresList={[explainerRound?.bestTokenScores?.[1] ?? []]} numLines={2} />
                 </div>
             </div>
         </div>
     );
 }
 
-function parseCondenseBenchmarkToDataset(raw: unknown): Dataset {
+function parseContrastBenchmarkToDataset(raw: unknown): Dataset {
     ensureIsSingleGame(raw as any);
-    // Dataset is a list of Games, one per model
-    // Games are {game, game_results, scores}
-    // game_result is a list of {score, xrt_history}
-    // xrt_history is a list of xegaevent
 
     const nModels = (raw as any).length;
     const nRounds = (raw as any)[0].game_results.length;
@@ -48,30 +49,36 @@ function parseCondenseBenchmarkToDataset(raw: unknown): Dataset {
         throw new Error(`Expected ${nModels} models, got ${modelSet.size}`);
     }
 
-
     const byRoundbyModel: Record<string, RoundModel>[] = Array.from({ length: nRounds }, () => ({}));
     for (const game of (raw as any)) {
-        const model = game.game.players[0].id
+        const model = game.game.players[0].id;
         for (const [roundIndex, round] of game.game_results.entries()) {
             const score = round.scores['black'];
             const move = round.xrt_history.find((e: any) => e.type === "elicit_response").response;
-            const rewardEvent = round.xrt_history.find((e: any) => e.type === "reward");
-            const tokenScores = rewardEvent.value.pairs
-            const scale = rewardEvent.value.scale
-            if (scale != 1) {
-                throw new Error(`Unsupported scale for reward: ${scale}`);
+            const rewardEvents = round.xrt_history.filter((e: any) => e.type === "reward");
+            if (rewardEvents.length !== 2) {
+                throw new Error(`Contrast expects exactly 2 reward events, got ${rewardEvents.length}`);
             }
+            const pos = rewardEvents[0];
+            const neg = rewardEvents[1];
+            if (pos.value.scale !== 1) {
+                throw new Error(`Positive reward scale must be 1, got ${pos.value.scale}`);
+            }
+            if (neg.value.scale !== -1) {
+                throw new Error(`Negative reward scale must be -1, got ${neg.value.scale}`);
+            }
+
+            const tokenScores = [pos.value.pairs, neg.value.pairs];
 
             byRoundbyModel[roundIndex][model] = {
                 model,
                 score,
                 move,
-                tokenScores: [tokenScores],
-            }
+                tokenScores,
+            };
         }
     }
 
-    // Check that all the rounds have the same models names (records have the same keys, which are modelSet)
     const models = Array.from(modelSet);
     for (const round of byRoundbyModel) {
         for (const model of models) {
@@ -91,15 +98,15 @@ function parseCondenseBenchmarkToDataset(raw: unknown): Dataset {
     return ds as any;
 }
 
-export const Condense: GameDisplay = {
-  name: "Condense",
-    pageTitle: "Challenge for LLMs: find a surprise-minimizing prefix for a given text.",
-    subtitle: (
-        <div>There are 3 rules: models have 30 attempts; prefixes are up to 10 tokens; and no words from the text can be used.</div>
-    ),
-    roundDisplay: (props) => <CondenseRoundDisplay {...props} />,
-    barRaceData: (raw: unknown) => {
-        const ds = parseCondenseBenchmarkToDataset(raw);
-        return new RaceData(ds as any);
+export const Contrast: GameDisplay = {
+  name: "Contrast",
+  pageTitle: "Challenge for LLMs: find a sentence that prefers one text and rejects another.",
+  subtitle: (
+    <div>Rules: models have 30 attempts; pick one sentence; maximize Pos text likelihood and minimize Neg text likelihood.</div>
+  ),
+  roundDisplay: (props) => <ContrastRoundDisplay {...props} />,
+  barRaceData: (raw: unknown) => {
+    const ds = parseContrastBenchmarkToDataset(raw);
+    return new RaceData(ds as any);
   },
 };

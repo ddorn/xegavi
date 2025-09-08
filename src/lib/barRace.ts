@@ -1,11 +1,11 @@
-import type { Dataset, RoundModel, TokenScores } from "@/lib/types";
+import type { Dataset, RoundModel, TokenScoresList } from "@/lib/types";
 import { deriveModelPresentation } from "@/lib/model-metadata";
 
 export interface RoundModelWithBest extends RoundModel {
   bestRoundIndex: number;
   bestScore: number;
   bestMove: string;
-  bestTokenScores: TokenScores;
+  bestTokenScores: TokenScoresList;
   // Derived presentation fields for convenience
   niceModel: string;
   company: string;
@@ -59,10 +59,11 @@ export class RaceData {
     return this.augmented[roundIndex]?.[id] ?? null;
   }
 
-  tokenScoresAt(id: string, roundIndex: number): TokenScores | null {
+  tokenScoresAt(id: string, roundIndex: number, best: boolean = true): TokenScoresList | null {
     const item = this.itemAt(id, roundIndex);
     if (!item) return null;
-    return item.bestTokenScores ?? item.token_scores ?? null;
+    if (best) return item.bestTokenScores ?? null;
+    return item.tokenScores ?? null;
   }
 
   historyFor(id: string): number[] {
@@ -116,7 +117,7 @@ export class RaceData {
           bestRoundIndex: bestIdx,
           bestScore: best.score,
           bestMove: best.move,
-          bestTokenScores: best.token_scores,
+          bestTokenScores: best.tokenScores,
           niceModel,
           company,
           color,
@@ -134,9 +135,11 @@ export class RaceData {
     let m = 0;
     for (const rounds of this.data.rounds) {
       for (const r of rounds) {
-        for (const [, s] of r.token_scores) {
-          const a = Math.abs(s);
-          if (a > m) m = a;
+        for (const seq of r.tokenScores) {
+          for (const [, s] of seq) {
+            const a = Math.abs(s);
+            if (a > m) m = a;
+          }
         }
       }
     }

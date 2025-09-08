@@ -3,6 +3,7 @@ import type React from "react";
 import type { RaceData } from "@/lib/barRace";
 
 export type TokenScores = Array<[string, number]>;
+export type TokenScoresList = TokenScores[];
 
 export type Playback = { isPlaying: boolean; round: number; speed: number };
 
@@ -10,7 +11,7 @@ export const RoundModelSchema = z.object({
   model: z.string(),
   score: z.number().finite(),
   move: z.string(),
-  token_scores: z.array(z.tuple([z.string(), z.number()])),
+  tokenScores: z.array(z.array(z.tuple([z.string(), z.number()]))),
 });
 export type RoundModel = z.infer<typeof RoundModelSchema>;
 

@@ -45,7 +45,7 @@ export function TokenScoreHeatmap({ rounds, rowHeight = 16, showMove = false, ch
                   <div key={roundIdx} className="" onMouseEnter={() => setHoveredRoundIdx(roundIdx)}>
                     <div className="h-full">
                       <TokenScoreHeatmapRow
-                        tokenScores={r.token_scores}
+                      tokenScoresList={r.tokenScores}
                         onHover={(tokenIdx, token, score) => { setHover({ roundIdx, tokenIdx, token, score }); setHoveredRoundIdx(roundIdx); }}
                       />
                     </div>

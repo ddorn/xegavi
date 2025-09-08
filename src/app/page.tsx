@@ -7,7 +7,7 @@ import type { AugmentedFrame, BarRaceFrame } from "@/lib/barRace";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BarRaceControls } from "@/components/BarRaceControls";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
-import type { TokenScores } from "@/lib/types";
+import type { TokenScoresList } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import TourGuide from "@/components/TourGuide";
@@ -68,7 +68,7 @@ export default function Home() {
 
   const leftRounds = focusedModelId && raceData ? raceData.roundsFor(focusedModelId) : [];
 
-  const getTokenScores = useCallback((id: string, round: number): TokenScores | null => {
+  const getTokenScores = useCallback((id: string, round: number): TokenScoresList | null => {
     return raceData ? raceData.tokenScoresAt(id, round) : null;
   }, [raceData]);
 

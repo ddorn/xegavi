@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useMemo } from "react";
-import type { TokenScores } from "@/lib/types";
+import type { TokenScores, TokenScoresList } from "@/lib/types";
 import { useTokenLayout } from "@/hooks/useTokenLayout";
 
 export interface TokenScoreHeatmapRowProps {
-  tokenScores: TokenScores;
+  tokenScoresList: TokenScoresList;
   numLines?: number;
   paddingPx?: number;
-  onHover?: (tokenIdx: number, token: string, score: number) => void;
+  onHover?: (tokenIdx: number, token: string, score: number, seqIdx?: number) => void;
 }
 
-export function TokenScoreHeatmapRow({ tokenScores, numLines = 1, paddingPx = 4, onHover }: TokenScoreHeatmapRowProps) {
+function SingleSeqRow({ tokenScores, numLines = 1, paddingPx = 4, onHover }: { tokenScores: TokenScores; numLines?: number; paddingPx?: number; onHover?: (tokenIdx: number, token: string, score: number) => void; }) {
   const { containerRef, lines, bgByIndex } = useTokenLayout(tokenScores, numLines, paddingPx);
 
   const numRenderedLines = lines.length;
@@ -34,6 +34,19 @@ export function TokenScoreHeatmapRow({ tokenScores, numLines = 1, paddingPx = 4,
               />
             );
           })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TokenScoreHeatmapRow({ tokenScoresList, numLines = 1, paddingPx = 4, onHover }: TokenScoreHeatmapRowProps) {
+  const n = Math.max(1, tokenScoresList.length);
+  return (
+    <div className="h-full">
+      {tokenScoresList.map((ts, i) => (
+        <div key={i} className="overflow-hidden" style={{ height: `${100 / n}%` }}>
+          <SingleSeqRow tokenScores={ts} numLines={numLines} paddingPx={paddingPx} onHover={(idx, tok, score) => onHover?.(idx, tok, score, i)} />
         </div>
       ))}
     </div>

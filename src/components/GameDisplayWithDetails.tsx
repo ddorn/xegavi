@@ -3,8 +3,7 @@
 import { RoundModelWithBest } from "@/lib/barRace";
 import React from "react";
 import { Logo } from "@/components/Logo";
-import { ModelRoundDetails } from "./ModelRoundDetails";
-import { TokenScoreHeatmap } from "./TokenScoreHeatmap";
+import { TokenScoreHeatmap } from "@/components/TokenScoreHeatmap";
 
 export interface GameDisplayWithDetailsProps {
   game: RoundModelWithBest[];
