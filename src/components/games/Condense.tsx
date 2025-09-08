@@ -1,94 +1,45 @@
-import type { Dataset, GameDisplay, RoundDisplayProps, RoundModel } from "@/lib/types";
-import { Logo } from "@/components/Logo";
-import { TokenMultilineText } from "@/components/TokenMultilineText";
-import { pickTextColor } from "@/lib/colors";
+import type { Dataset, GameDisplay, RawGameResult, RoundDisplayProps } from "@/lib/types";
 import { RaceData } from "@/lib/barRace";
-import { ensureIsSingleGame } from "@/lib/dataset";
+import { MoveAndTokenSections } from "@/components/MoveAndTokenSections";
+import { parseBenchmarkToDataset, getElicitEvents, getRewardEvents } from "@/lib/dataset";
 
 function CondenseRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayProps) {
     const explainerRound = focusedModelId ? raceData.roundsFor(focusedModelId)[round] : null;
     const bg = explainerRound?.color ?? "#888";
-    const fg = pickTextColor(bg);
+
+    if (!explainerRound) return <div>No data</div>;
 
     return (
-        <div className="flex">
-            <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-baseline gap-x-2 gap-y-2 mb-2">
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Prefix:</div>
-                <div>
-                    <Logo model={explainerRound?.model ?? ""} className="inline-block align-middle mr-1" size={20} />
-                    <span className="px-2 mr-1 items-center align-middle" style={{ color: fg, backgroundColor: bg }}>
-                        <span className="font-black mr-2">{explainerRound?.niceModel ?? explainerRound?.model}</span>
-                        <span className="overflow-scroll" data-tour="explainer-move">{explainerRound?.bestMove}</span>
-                    </span>
-                </div>
-
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Today&apos;s text:</div>
-                <div data-tour="explainer-tokens">
-                    <TokenMultilineText tokenScoresList={explainerRound?.bestTokenScores ?? []} numLines={3} />
-                </div>
-            </div>
-        </div>
+        <MoveAndTokenSections
+            model={explainerRound.model}
+            move={explainerRound.bestMove}
+            sections={[{ label: "Today\'s text:", tokenScoresList: explainerRound.bestTokenScores ?? [], numLines: 3 }]}
+        />
     );
 }
 
+export function convertCondenseRound(round: RawGameResult) {
+    const rewards = getRewardEvents(round);
+    if (rewards.length !== 1) {
+        throw new Error(`Condense expects exactly 1 reward event, got ${rewards.length}`);
+    }
+    const r = rewards[0];
+    if (r.value.scale !== 1) {
+        throw new Error(`Unsupported scale for reward: ${r.value.scale}`);
+    }
+
+    const elicits = getElicitEvents(round)
+    if (elicits.length !== 1) {
+        throw new Error(`Condense expects exactly 1 elicit event, got ${elicits.length}`);
+    }
+    const move = elicits[0].response;
+
+    return { score: round.scores['black'], move, tokenScores: [r.value.pairs] };
+}
+
+
 function parseCondenseBenchmarkToDataset(raw: unknown): Dataset {
-    ensureIsSingleGame(raw as any);
-    // Dataset is a list of Games, one per model
-    // Games are {game, game_results, scores}
-    // game_result is a list of {score, xrt_history}
-    // xrt_history is a list of xegaevent
-
-    const nModels = (raw as any).length;
-    const nRounds = (raw as any)[0].game_results.length;
-    const modelSet = new Set<string>();
-    for (const game of (raw as any)) {
-        modelSet.add(game.game.players[0].id);
-    }
-    if (modelSet.size !== nModels) {
-        throw new Error(`Expected ${nModels} models, got ${modelSet.size}`);
-    }
-
-
-    const byRoundbyModel: Record<string, RoundModel>[] = Array.from({ length: nRounds }, () => ({}));
-    for (const game of (raw as any)) {
-        const model = game.game.players[0].id
-        for (const [roundIndex, round] of game.game_results.entries()) {
-            const score = round.scores['black'];
-            const move = round.xrt_history.find((e: any) => e.type === "elicit_response").response;
-            const rewardEvent = round.xrt_history.find((e: any) => e.type === "reward");
-            const tokenScores = rewardEvent.value.pairs
-            const scale = rewardEvent.value.scale
-            if (scale != 1) {
-                throw new Error(`Unsupported scale for reward: ${scale}`);
-            }
-
-            byRoundbyModel[roundIndex][model] = {
-                model,
-                score,
-                move,
-                tokenScores: [tokenScores],
-            }
-        }
-    }
-
-    // Check that all the rounds have the same models names (records have the same keys, which are modelSet)
-    const models = Array.from(modelSet);
-    for (const round of byRoundbyModel) {
-        for (const model of models) {
-            if (!round[model]) {
-                throw new Error(`Round ${round} has no model ${model}`);
-            }
-        }
-        if (Object.keys(round).length !== models.length) {
-            throw new Error(`Round ${round} has ${Object.keys(round).length} models, expected ${models.length}`);
-        }
-    }
-
-    const ds = {
-        version: "0.1.0",
-        rounds: byRoundbyModel.map(round => Object.values(round)),
-    };
-    return ds as any;
+    return parseBenchmarkToDataset(raw, convertCondenseRound);
 }
 
 export const Condense: GameDisplay = {
@@ -100,6 +51,6 @@ export const Condense: GameDisplay = {
     roundDisplay: (props) => <CondenseRoundDisplay {...props} />,
     barRaceData: (raw: unknown) => {
         const ds = parseCondenseBenchmarkToDataset(raw);
-        return new RaceData(ds as any);
+        return new RaceData(ds);
   },
 };
