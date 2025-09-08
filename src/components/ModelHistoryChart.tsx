@@ -92,7 +92,7 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
 
   // Hovered round state for live label
   const [hoveredRound, setHoveredRound] = useState<number | null>(null);
-  const showRound = hoveredRound ?? roundIndex;
+  const showRound = hoveredRound ?? globalBestIndex;
 
   // Combined labels: improvements + current (if not duplicate), sorted by round
   const labels = useMemo(() => {
@@ -105,7 +105,7 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
     return arr;
   }, [displayImprovements, showRound, rounds]);
 
-  const lanes = labels.length; // one lane per label
+  const lanes = Math.max(displayImprovements.length + 1, 1);
   const labelBandHeight = lanes * LABEL_ROW_HEIGHT + Math.max(0, lanes - 1) * ROW_GAP;
 
   // Keep XAxis memoized to avoid tick blinking on updates
@@ -266,9 +266,9 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
                       textOverflow: "ellipsis",
                       fontWeight: isCurrent ? 600 as any : undefined
                     }}
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
+                      initial={{ opacity: 0}}
+                      animate={{ opacity: 0.85}}
+                      exit={{ opacity: 0}}
                       transition={{ duration: 0.12 }}
                     >
                       <span className="tabular-nums" style={{ opacity: 0.7 }}>Round {ev.round + 1}</span>
