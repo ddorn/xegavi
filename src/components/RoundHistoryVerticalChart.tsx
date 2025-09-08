@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, ReferenceLine, ReferenceDot, Label, Tooltip } from "recharts";
+import { makeScoreTooltip } from "@/components/ScoreTooltip";
 
 export interface RoundHistoryVerticalChartProps {
   scores: number[];
@@ -49,35 +50,7 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
   const segRight = xMax + range * 0; // small padding from the right
   const segLeft  = 0;
 
-  const CustomTooltip = ({ active, payload, label }: {
-    active?: boolean;
-    payload?: Array<{
-      dataKey: string;
-      value: number;
-    }>;
-    label?: number;
-  }) => {
-    if (active && payload && payload.length) {
-      const currentScore = payload.find((p) => p.dataKey === 'current')?.value;
-      const bestScore = payload.find((p) => p.dataKey === 'best')?.value;
-
-      return (
-        <div style={{
-          backgroundColor: 'white',
-          color: 'black',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
-          padding: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <p style={{ margin: '0 0 4px 0', fontWeight: 'bold' }}>Round {label}</p>
-          <p style={{ margin: '0 0 2px 0' }}>Score: {currentScore?.toFixed(1)}</p>
-          <p style={{ margin: '0' }}>Best: {bestScore?.toFixed(1)}</p>
-        </div>
-      );
-    }
-    return null;
-  };
+  const TooltipRenderer = makeScoreTooltip({ currentKey: "current", bestKey: "best" });
 
   return (
     <div className={className} style={{ width, height: height ?? computedHeight }}>
@@ -101,7 +74,7 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
             tick={{ fontSize: 10, opacity: 0.8 }}
           />
 
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<TooltipRenderer />} />
 
           <Area
             type="monotone"

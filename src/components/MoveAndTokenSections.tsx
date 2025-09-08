@@ -3,6 +3,7 @@ import { TokenMultilineText } from "@/components/TokenMultilineText";
 import { pickTextColor } from "@/lib/colors";
 import { modelColor, niceModelName } from "@/lib/model-metadata";
 import type { TokenScoresList } from "@/lib/types";
+import { Fragment } from "react";
 
 export type TokenSection = {
     label: string;
@@ -23,12 +24,12 @@ export function MoveAndTokenSections({ model, move, sections }: MoveAndTokenSect
                 <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">Prefix:</div>
                 <MoveWithModel model={model} move={move} />
                 {sections.map((s, i) => (
-                    <>
-                        <div key={`label-${i}`} className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">{s.label}</div>
-                        <div key={`tokens-${i}`} data-tour={i === 0 ? "explainer-tokens" : undefined}>
+                    <Fragment key={i}>
+                        <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">{s.label}</div>
+                        <div data-tour={i === 0 ? "explainer-tokens" : undefined}>
                             <TokenMultilineText tokenScoresList={s.tokenScoresList} numLines={0}/>
                         </div>
-                    </>
+                    </Fragment>
                 ))}
             </div>
         </div>

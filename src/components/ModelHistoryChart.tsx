@@ -2,8 +2,10 @@
 
 import { useTheme } from "next-themes";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, ReferenceLine, Label, Area } from "recharts";
+import { ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, ReferenceLine, Label, Area, Tooltip } from "recharts";
 import type { RoundModelWithBest } from "@/lib/barRace";
+import { makeScoreTooltip } from "@/components/ScoreTooltip";
+import { motion, AnimatePresence } from "motion/react";
 
 export interface ModelHistoryChartProps {
   rounds: RoundModelWithBest[];
@@ -28,9 +30,9 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
 
   // Improvement events: points where running best improves (also include round 0 always)
   const improvements = useMemo(() => {
-    const events: Array<{ round: number; delta: number; move: string; }> = [];
+    const events: Array<{ round: number; delta: number; move: string; score: number; }> = [];
     if (rounds.length > 0) {
-      events.push({ round: 0, delta: 0, move: rounds[0].bestMove });
+      events.push({ round: 0, delta: 0, move: rounds[0].bestMove, score: rounds[0].bestScore });
     }
     for (let i = 1; i < rounds.length; i++) {
       const prev = rounds[i - 1];
@@ -38,7 +40,7 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
       const improved = cur.bestRoundIndex !== prev.bestRoundIndex && cur.bestScore > prev.bestScore;
       if (improved) {
         const delta = cur.bestScore - prev.bestScore;
-        events.push({ round: i, delta, move: cur.bestMove });
+        events.push({ round: i, delta, move: cur.bestMove, score: cur.bestScore });
       }
     }
     return events;
@@ -52,7 +54,7 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
 
     const sortedByDelta = [...improvements].sort((a, b) => b.delta - a.delta);
 
-    const picked: Array<{ round: number; delta: number; move: string; }> = [];
+    const picked: Array<{ round: number; delta: number; move: string; score: number; }> = [];
     for (const ev of sortedByDelta) {
       if (picked.length >= maxLabels) break;
       if (mustHave.has(ev.round) || picked.length < maxLabels) {
@@ -86,8 +88,24 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
 
   const LABEL_ROW_HEIGHT = 26; // px
   const ROW_GAP = 4; // px
-  const CONNECTOR_HEADROOM = 6; // px extend connectors above first row for visibility
-  const lanes = displayImprovements.length; // one lane per label
+  const CONNECTOR_HEADROOM = 16; // px extend connectors above first row for visibility
+
+  // Hovered round state for live label
+  const [hoveredRound, setHoveredRound] = useState<number | null>(null);
+  const showRound = hoveredRound ?? roundIndex;
+
+  // Combined labels: improvements + current (if not duplicate), sorted by round
+  const labels = useMemo(() => {
+    const arr = [...displayImprovements];
+    if (showRound != null && !arr.some(ev => ev.round === showRound)) {
+      const r = rounds[showRound];
+      if (r) arr.push({ round: showRound, delta: 0, move: r.move, score: r.score });
+    }
+    arr.sort((a, b) => a.round - b.round);
+    return arr;
+  }, [displayImprovements, showRound, rounds]);
+
+  const lanes = labels.length; // one lane per label
   const labelBandHeight = lanes * LABEL_ROW_HEIGHT + Math.max(0, lanes - 1) * ROW_GAP;
 
   // Keep XAxis memoized to avoid tick blinking on updates
@@ -111,20 +129,20 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
   const xToPx = (round: number) => MARGINS.left + (round / denom) * innerWidth;
   const lineColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
 
-  // Color helpers (for potential future solid tints)
-  const colorRgb = useMemo(() => {
-    const hex = color.startsWith("#") ? color.slice(1) : color;
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    return { r, g, b };
-  }, [color]);
-  const rgba = (a: number) => `rgba(${colorRgb.r}, ${colorRgb.g}, ${colorRgb.b}, ${a})`;
+  const TooltipRenderer = makeScoreTooltip({ currentKey: "score", bestKey: "best" });
 
   return (
-    <div ref={containerRef} style={{ width: "100%", height: height + labelBandHeight + CONNECTOR_HEADROOM, position: "relative", color: "currentColor" }}>
+    <div ref={containerRef} style={{ width: "100%", height: height + labelBandHeight, position: "relative", color: "currentColor" }}>
       {/* Chart area in a fixed-height wrapper so labels attach flush below */}
-      <div style={{ height }}>
+      <div style={{ height }}
+        onMouseMove={(e) => {
+          const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+          const x = e.clientX - rect.left - MARGINS.left;
+          const idx = Math.max(0, Math.min(rounds.length - 1, Math.round((x / Math.max(1, innerWidth)) * denom)));
+          setHoveredRound(idx);
+        }}
+        onMouseLeave={() => setHoveredRound(null)}
+      >
         <ResponsiveContainer>
           <ComposedChart
             data={data}
@@ -137,7 +155,12 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
             {MemoizedXAxis}
             <YAxis hide domain={["auto", "auto"]} />
 
-            {/* Running-best area and line (now visible under ComposedChart) */}
+            <Tooltip content={<TooltipRenderer />} />
+
+            {/* Zero baseline */}
+            <ReferenceLine y={0} stroke={lineColor} />
+
+            {/* Running-best area and line */}
             <Area
               type="monotone"
               dataKey="best"
@@ -167,14 +190,14 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
               isAnimationActive={false}
             />
 
-            {/* Trophy only at global best (no duplicate solid line) */}
-            <ReferenceLine x={globalBestIndex} stroke="currentColor" strokeDasharray="4 4" opacity={0.9}>
+            {/* Trophy only at global best */}
+            <ReferenceLine x={globalBestIndex} stroke="currentColor" opacity={0.9}>
               <Label value="🏆" position="top" />
             </ReferenceLine>
 
-            {/* Vertical markers for improvements (exclude global best to avoid double lines) */}
-            {displayImprovements.filter(ev => ev.round !== globalBestIndex).map((ev, i) => (
-              <ReferenceLine key={`impr-${i}`} x={ev.round} stroke="currentColor" opacity={0.28} />
+            {/* Improvement markers (exclude global best) */}
+            {labels.filter(ev => ev.round !== globalBestIndex).map((ev, i) => (
+              <ReferenceLine key={displayImprovements.some(d => d.round === ev.round) ? `impr-${ev.round}` : "impr-current"} x={ev.round} stroke="currentColor" opacity={0.28} />
             ))}
           </ComposedChart>
         </ResponsiveContainer>
@@ -185,64 +208,85 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
         <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: labelBandHeight, zIndex: 2 }}>
           {/* Connectors behind boxes, extend slightly above first row */}
           <div style={{ position: "absolute", left: 0, right: 0, top: -CONNECTOR_HEADROOM, bottom: 0, pointerEvents: "none", zIndex: 0 }}>
-            {displayImprovements.map((ev, idx) => {
+            {labels.map((ev, idx) => {
               const x = xToPx(ev.round);
               const y2 = idx * (LABEL_ROW_HEIGHT + ROW_GAP) + LABEL_ROW_HEIGHT / 2 + CONNECTOR_HEADROOM;
+              const isPersistent = displayImprovements.some(d => d.round === ev.round);
+              const key = isPersistent ? `conn-${ev.round}` : (ev.round === showRound ? "conn-current" : `conn-temp-${ev.round}`);
               return (
-                <div key={`conn-${idx}`} style={{ position: "absolute", left: x, top: 0, width: 1, height: y2, backgroundColor: lineColor }} />
+                <div key={key} style={{ position: "absolute", left: x, top: 0, width: 1, height: y2, backgroundColor: lineColor }} />
               );
             })}
           </div>
 
           {/* Text rows (zIndex 1) */}
           <div className="grid grid-cols-1" style={{ gridAutoRows: `${LABEL_ROW_HEIGHT}px`, rowGap: ROW_GAP, position: "relative", zIndex: 1 }}>
-            {displayImprovements.map((ev, idx) => {
-              const x = xToPx(ev.round);
-              const rightSide = x > (MARGINS.left + innerWidth / 2);
-              const availableLeft = x - MARGINS.left - 16;
-              const availableRight = MARGINS.left + innerWidth - x - 16;
-              const pillMax = Math.max(120, Math.floor((rightSide ? availableLeft : availableRight)));
-              const bg = isDark ? "#0b0f14" : "#ffffff";
-              const border = isDark ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.22)";
-              return (
-                <div key={`lbl-${idx}`} className="relative flex items-center" style={{ zIndex: 1 }}>
-                  {/* Elbow and dot anchored at marker position; render under pill by stacking order */}
-                  {rightSide ? (
-                    <>
-                      <div style={{ position: "absolute", left: x - 12, top: "50%", transform: "translateY(-50%)", height: 1, width: 12, backgroundColor: lineColor, pointerEvents: "none", zIndex: 0 }} />
-                      <div style={{ position: "absolute", left: x, top: "50%", transform: "translate(-2px, -50%)", width: 4, height: 4, borderRadius: 9999, backgroundColor: lineColor, pointerEvents: "none", zIndex: 0 }} />
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ position: "absolute", left: x, top: "50%", transform: "translateY(-50%)", height: 1, width: 12, backgroundColor: lineColor, pointerEvents: "none", zIndex: 0 }} />
-                      <div style={{ position: "absolute", left: x, top: "50%", transform: "translate(-2px, -50%)", width: 4, height: 4, borderRadius: 9999, backgroundColor: lineColor, pointerEvents: "none", zIndex: 0 }} />
-                    </>
-                  )}
+            <AnimatePresence initial={false}>
+              {labels.map((ev, idx) => {
+                const x = xToPx(ev.round);
+                const rightSide = x > (MARGINS.left + innerWidth / 2);
+                const availableLeft = x - MARGINS.left - 16;
+                const availableRight = MARGINS.left + innerWidth - x - 16;
+                const pillMax = Math.max(120, Math.floor((rightSide ? availableLeft : availableRight)));
+                const bg = isDark ? "#0b0f14" : "#ffffff";
+                const border = isDark ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.22)";
+                const isCurrent = ev.round === showRound; // bold hovered/current even if it's an improvement
+                const isPersistent = displayImprovements.some(d => d.round === ev.round);
+                const key = isPersistent ? `lbl-${ev.round}` : (isCurrent ? "lbl-current" : `lbl-temp-${ev.round}`);
+                return (
+                  <motion.div key={key} className="relative flex items-center" style={{ zIndex: 1 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    layout
+                  >
+                    {rightSide ? (
+                      <>
+                        <div style={{ position: "absolute", left: x - 12, top: "50%", transform: "translateY(-50%)", height: 1, width: 12, backgroundColor: lineColor, pointerEvents: "none", zIndex: 0 }} />
+                        <div style={{ position: "absolute", left: x, top: "50%", transform: "translate(-2px, -50%)", width: 4, height: 4, borderRadius: 9999, backgroundColor: lineColor, pointerEvents: "none", zIndex: 0 }} />
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ position: "absolute", left: x, top: "50%", transform: "translateY(-50%)", height: 1, width: 12, backgroundColor: lineColor, pointerEvents: "none", zIndex: 0 }} />
+                        <div style={{ position: "absolute", left: x, top: "50%", transform: "translate(-2px, -50%)", width: 4, height: 4, borderRadius: 9999, backgroundColor: lineColor, pointerEvents: "none", zIndex: 0 }} />
+                      </>
+                    )}
 
-                  {/* Auto-width callout pill; right align when on right; solid backgrounds */}
-                  <div className="text-xs opacity-90 rounded px-2 py-1 border" style={{
-                    position: "absolute",
-                    left: rightSide ? undefined : x + 12,
-                    right: rightSide ? (containerWidth - x + 12) : undefined,
-                    maxWidth: pillMax,
-                    backgroundColor: bg,
-                    borderColor: border,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis"
-                  }}>
-                    <span className="tabular-nums" style={{ opacity: 0.7 }}>Round {ev.round + 1}</span>
-                    <span className="mx-1" style={{ opacity: 0.5 }}>·</span>
-                    <span className="tabular-nums" style={{ opacity: 0.9 }}>Δ+{ev.delta.toFixed(1)}</span>
-                    <span className="mx-2" style={{ opacity: 0.5 }}>—</span>
-                    {ev.move}
-                  </div>
+                    {/* Auto-width callout pill; right align when on right; solid backgrounds */}
+                    <motion.div className="text-xs opacity-90 rounded px-2 py-1 border" style={{
+                      position: "absolute",
+                      left: rightSide ? undefined : x + 12,
+                      right: rightSide ? (containerWidth - x + 12) : undefined,
+                      maxWidth: pillMax,
+                      backgroundColor: bg,
+                      borderColor: border,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      fontWeight: isCurrent ? 600 as any : undefined
+                    }}
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.12 }}
+                    >
+                      <span className="tabular-nums" style={{ opacity: 0.7 }}>Round {ev.round + 1}</span>
+                      <span className="mx-1" style={{ opacity: 0.5 }}>·</span>
+                      {displayImprovements.some(d => d.round === ev.round) ? (
+                        <span className="tabular-nums" style={{ opacity: 0.9 }}>Δ+{ev.delta.toFixed(1)} · {ev.score.toFixed(1)}</span>
+                      ) : (
+                        <span className="tabular-nums" style={{ opacity: 0.9 }}>Score {ev.score.toFixed(1)}</span>
+                      )}
+                      <span className="mx-2" style={{ opacity: 0.5 }}>—</span>
+                      {ev.move}
+                    </motion.div>
 
-                  {/* Spacer block so row height is preserved */}
-                  <div style={{ height: LABEL_ROW_HEIGHT, width: "100%" }} />
-                </div>
-              );
-            })}
+                    <div style={{ height: LABEL_ROW_HEIGHT, width: "100%" }} />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         </div>
       )}
