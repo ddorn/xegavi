@@ -121,7 +121,7 @@ export default function TourGuide({
     tour.addStep({
       id: "first-score",
       text: "Opus 4.1\'s first attempt isn\'t great, it scores only 10 points. Let\'s see what it is.",
-      attachTo: { element: '[data-bar-name="Opus 4.1"]', on: "right" },
+      attachTo: { element: '[data-bar-name="Opus 4.1"]', on: "bottom" },
       buttons: [cancelButton, previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-bar-name="Opus 4.1"]')) },
     });
@@ -167,7 +167,7 @@ export default function TourGuide({
     tour.addStep({
       id: "play",
       text: "Let\'s see how it improves its guesses.",
-      attachTo: { element: '[data-tour="play-button"]', on: "right" },
+      attachTo: { element: '[data-tour="play-button"]', on: "bottom" },
       advanceOn: { selector: '[data-tour="play-button"]', event: 'click' },
       buttons: [cancelButton, previousButton, nextButton],
       when: { show: () => scrollIntoViewNicely(document.querySelector('[data-tour="play-button"]')) },
