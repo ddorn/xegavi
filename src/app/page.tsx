@@ -104,7 +104,7 @@ export default function Home() {
 
         {game && (
           <div data-tour="todays-game" className="max-w-3xl ">
-            <div className="text-lg font-black mb-1 text-blue-600">Xent Labs Benchmark showcase</div>
+            <div className="text-lg font-black mb-1 text-blue-600">Xent Labs Benchmark Showcase</div>
             <h1 className="text-3xl font-black mb-2">
               {game.pageTitle}
             </h1>
@@ -123,8 +123,8 @@ export default function Home() {
                 onClick={() => setStartSignal((n) => n + 1)}
                 className="inline-flex items-center gap-2 px-4 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-shadow shadow-md"
               >
-                <span className="">✨</span>
-                <span>Take the 30‑second tour</span>
+                <span>✨</span>
+                <span>What is this?</span>
               </button>
             </div>
 
