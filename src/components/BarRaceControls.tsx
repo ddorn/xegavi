@@ -4,6 +4,7 @@ import React from "react";
 import type { Playback } from "@/lib/types";
 import { Slider } from "@/components/Slider";
 import { CycleButton } from "@/components/CycleButton";
+import { TourAnchor, Anchors } from "./TourGuide";
 
 export interface BarRaceControlsProps {
   playback: Playback;
@@ -22,15 +23,17 @@ export function BarRaceControls({
 
   return (
     <div className="flex items-center gap-2">
-      <button
-        type="button"
-        className="button"
-        onClick={() => onPlaybackChange({ ...playback, isPlaying: !playback.isPlaying })}
-        aria-label={playback.isPlaying ? "Pause" : "Play"}
-        data-tour="play-button"
-      >
-        {playback.isPlaying ? "Pause" : "Play"}
-      </button>
+      <TourAnchor anchor={Anchors.playButton}>
+        <button
+          type="button"
+          className="button"
+          onClick={() => onPlaybackChange({ ...playback, isPlaying: !playback.isPlaying })}
+          aria-label={playback.isPlaying ? "Pause" : "Play"}
+        >
+          {playback.isPlaying ? "Pause" : "Play"}
+        </button>
+
+      </TourAnchor>
       <CycleButton
         value={(playback.speed as typeof SPEED_STEPS[number]) ?? 1}
         steps={SPEED_STEPS}
@@ -47,7 +50,6 @@ export function BarRaceControls({
           value={playback.round}
           onValueChange={(v) => onPlaybackChange({ ...playback, round: v })}
           aria-label="Round"
-          data-tour="round-slider"
         />
         <span className="tabular-nums text-sm min-w-[6.5rem] text-right">
           {`Attempt ${playback.round + 1}/${totalRounds}`}

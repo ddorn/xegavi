@@ -22,6 +22,7 @@ export type BarRaceItem = {
   value: number;
   color: string;
   iconSrc: string;
+  tokenScoresList?: TokenScoresList;
 };
 
 export type BarRaceFrame = BarRaceItem[];
@@ -73,6 +74,25 @@ export class RaceData {
   roundsFor(id: string) {
     return this.augmented.map((frame) => frame[id]!).filter(Boolean);
   }
+
+
+  /** Builds frames suitable for the BarRace */
+  buildFrames(useBestMove: boolean = true): BarRaceFrame[] {
+    const augmented = this.augmented;
+    return augmented.map((frame) =>
+      Object.values(frame).map((it) => ({
+        id: it.model,
+        name: it.niceModel,
+        description: useBestMove ? it.bestMove : it.move,
+        value: useBestMove ? it.bestScore : it.score,
+        color: it.color,
+        iconSrc: it.logoSrc ?? "",
+        company: it.company,
+        tokenScoresList: useBestMove ? it.bestTokenScores : it.tokenScores,
+      }))
+    );
+  }
+
 
   /**
    * Compute per-round frames keyed by model name, augmenting each entry with

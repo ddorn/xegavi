@@ -57,10 +57,67 @@ function buildDataAttrs(index: number, score: number, ranks: RankMaps): Record<s
     return attrs;
 }
 
+// Shared renderer for a single token span across modes
+function renderTokenSpan(params: {
+    index: number;
+    token: string;
+    score: number;
+    seqIdx: number;
+    ranks: RankMaps;
+    paddingPx: number;
+    onHover?: (tokenIdx: number, token: string, score: number, seqIdx: number) => void;
+    getScoreColor: (score: number) => string;
+}) {
+    const { index, token, score, seqIdx, ranks, paddingPx, onHover, getScoreColor } = params;
+    const bucket = classifyBucket(score);
+    const attrs = buildDataAttrs(index, score, ranks);
+    const bg = getScoreColor(score);
+    return (
+        <span
+            key={index}
+            className={"inline-block align-top " + bucket}
+            style={{ backgroundColor: bg, paddingRight: `${paddingPx}px`, paddingLeft: `${paddingPx}px` }}
+            onMouseEnter={() => onHover?.(index, token, score, seqIdx)}
+            title={`${token} (${score.toFixed(2)})`}
+            {...attrs}
+        >
+            {token}
+        </span>
+    );
+}
+
+function TokenSequenceWrapped({ tokenScores, seqIdx, numLines, paddingPx, onHover, getScoreColor }: { tokenScores: TokenScores; seqIdx: number; numLines: number; paddingPx: number; onHover?: (tokenIdx: number, token: string, score: number, seqIdx: number) => void; getScoreColor: (score: number) => string; }) {
+    const { containerRef, lines } = useTokenLayout(tokenScores, numLines, paddingPx);
+    const ranks = computeRankMaps(tokenScores, POS_THRESHOLD, NEG_THRESHOLD);
+    return (
+        <div ref={containerRef}>
+            {lines.map((line, lineIdx) => (
+                <div key={lineIdx}>
+                    {line.map(({ index }) => {
+                        const [tok, score] = tokenScores[index];
+                        return renderTokenSpan({
+                            index,
+                            token: tok,
+                            score,
+                            seqIdx,
+                            ranks,
+                            paddingPx,
+                            onHover,
+                            getScoreColor,
+                        });
+                    })}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export function TokenMultilineText({ tokenScoresList, numLines = 1, paddingPx = 4, onHover, className }: TokenMultilineTextProps) {
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === "dark";
     const { maxAbsScore } = useColorScale();
+
+    const getScoreColor = React.useCallback((score: number) => tokenScoreToColor(score, isDark, maxAbsScore), [isDark, maxAbsScore]);
 
     const isFreeFlow = numLines === 0;
 
@@ -72,21 +129,18 @@ export function TokenMultilineText({ tokenScoresList, numLines = 1, paddingPx = 
                     const ranks = computeRankMaps(tokenScores, POS_THRESHOLD, NEG_THRESHOLD);
                     return (
                         <span key={seqIdx}>
-                            {tokenScores.map(([tok, score], i) => {
-                                const bucket = classifyBucket(score);
-                                const attrs = buildDataAttrs(i, score, ranks);
-                                return (
-                                    <span
-                                        key={i}
-                                        title={score.toFixed(2)}
-                                        style={{ backgroundColor: tokenScoreToColor(score, isDark, maxAbsScore) }}
-                                        className={"px-0.5 " + bucket}
-                                        {...attrs}
-                                    >
-                                        {tok}
-                                    </span>
-                                );
-                            })}
+                            {tokenScores.map(([tok, score], i) =>
+                                renderTokenSpan({
+                                    index: i,
+                                    token: tok,
+                                    score,
+                                    seqIdx,
+                                    ranks,
+                                    paddingPx,
+                                    onHover,
+                                    getScoreColor,
+                                })
+                            )}
                             {seqIdx < tokenScoresList.length - 1 ? <span className="px-1" /> : null}
                         </span>
                     );
@@ -96,37 +150,19 @@ export function TokenMultilineText({ tokenScoresList, numLines = 1, paddingPx = 
     }
 
     // Multiline (wrapped) mode: stack each sequence vertically, each with its own wrapping layout
-    const n = Math.max(1, tokenScoresList.length);
     return (
         <div className={"overflow-x-auto whitespace-nowrap flex flex-col " + (className ?? "")}>
-            {tokenScoresList.map((tokenScores, seqIdx) => {
-                const { containerRef, lines, bgByIndex } = useTokenLayout(tokenScores, numLines, paddingPx);
-                const ranks = computeRankMaps(tokenScores, POS_THRESHOLD, NEG_THRESHOLD);
-                return (
-                    <div key={seqIdx} ref={containerRef}>
-                        {lines.map((line, lineIdx) => (
-                            <div key={lineIdx}>
-                                {line.map(({ index }) => {
-                                    const [tok, score] = tokenScores[index];
-                                    const attrs = buildDataAttrs(index, score, ranks);
-                                    return (
-                                        <span
-                                            key={index}
-                                            className="inline-block align-top"
-                                            style={{ backgroundColor: bgByIndex[index], paddingRight: `${paddingPx}px`, paddingLeft: `${paddingPx}px` }}
-                                            onMouseEnter={() => onHover?.(index, tok, score, seqIdx)}
-                                            title={tok}
-                                            {...attrs}
-                                        >
-                                            {tok}
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                        ))}
-                    </div>
-                );
-            })}
+            {tokenScoresList.map((tokenScores, seqIdx) => (
+                <TokenSequenceWrapped
+                    key={seqIdx}
+                    tokenScores={tokenScores}
+                    seqIdx={seqIdx}
+                    numLines={numLines}
+                    paddingPx={paddingPx}
+                    onHover={onHover}
+                    getScoreColor={getScoreColor}
+                />
+            ))}
         </div>
     );
 }

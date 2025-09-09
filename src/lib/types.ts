@@ -29,6 +29,19 @@ export type RoundDisplayProps = {
   round: number;
 };
 
+export type GameTourIntro = {
+  steps: Array<{
+    text: string;
+    attachTo: { element: string; on: "top" | "bottom" | "left" | "right" };
+  }>;
+};
+
+export type BarRaceOptions = {
+  heatmapLines?: number;
+  displayMove?: boolean;
+  moveAlignment?: "left" | "right";
+}
+
 export type GameDisplay = {
   name: string;
   pageTitle: string;
@@ -36,6 +49,7 @@ export type GameDisplay = {
   /// Component factory to display the round header (prefix + highlighted tokens)
   roundDisplay: (props: RoundDisplayProps) => React.ReactNode;
   barRaceData: (data: unknown) => RaceData | null;
+  tourIntro?: GameTourIntro;
   barRaceOptions?: BarRaceOptions;
 };
 

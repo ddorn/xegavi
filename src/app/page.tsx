@@ -10,7 +10,7 @@ import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScoresList } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
-import TourGuide from "@/components/TourGuide";
+import TourGuide, { TourAnchor, anchorToProps, Anchors } from "@/components/TourGuide";
 
 export default function Home() {
   const { game, raceData, error, onFile, loadFromUrl } = useDataset();
@@ -29,7 +29,7 @@ export default function Home() {
     })();
   }, []);
 
-  const frames = useMemo(() => (raceData ? buildFrames(raceData.augmented) : []), [raceData]);
+  const frames = useMemo(() => (raceData ? raceData.buildFrames() : []), [raceData]);
 
   const [playbackState, setPlaybackState] = useState<Playback>({ isPlaying: true, round: 0, speed: 1 });
   const handleRoundChange = useCallback((idx: number) => {
@@ -103,16 +103,16 @@ export default function Home() {
         )}
 
         {game && (
-          <div data-tour="todays-game" className="max-w-3xl ">
+          <TourAnchor anchor={Anchors.todaysGame} className="max-w-3xl ">
             <div className="text-lg font-black mb-1 text-blue-600">Xent Labs Benchmark Showcase</div>
             <h1 className="text-3xl font-black mb-2">
               {game.pageTitle}
             </h1>
 
-            <div className="" data-tour="game-rules">
+            <TourAnchor anchor={Anchors.gameRules} className="">
               <div className="">{game.subtitle}</div>
-            </div>
-          </div>
+            </TourAnchor>
+          </TourAnchor>
         )}
 
         {raceData && game && (
@@ -137,11 +137,10 @@ export default function Home() {
 
               <TourGuide
                 raceData={raceData}
-                playback={playbackState}
                 setPlayback={setPlaybackState}
-                focusedModelId={focusedModelId}
                 setFocusedModelId={setFocusedModelId}
                 startSignal={startSignal}
+                game={game}
               />
               <div className="flex gap-6 w-full">
                 <div className="flex-1">
@@ -153,7 +152,7 @@ export default function Home() {
                     onPlaybackChange={setPlaybackState}
                   />
 
-                  <div className="border rounded-md mt-2 p-3">
+                  <TourAnchor anchor={Anchors.barRace} className="border rounded-md mt-2 p-3">
                     <BarRace
                       frames={frames}
                       barHeight={24}
@@ -161,13 +160,12 @@ export default function Home() {
                       transitionDurationSec={stepDurationMs * 0.8 / 1000}
                       onSelectedIdChange={handleSelectedIdChange}
                       heatmapMode="prefix"
-                      getTokenScores={getTokenScores}
                       selectedId={focusedModelId}
                       heatmapLines={game.barRaceOptions?.heatmapLines}
                       displayDescription={game.barRaceOptions?.displayMove}
                       moveAlignment={game.barRaceOptions?.moveAlignment}
                     />
-                  </div>
+                  </TourAnchor>
 
                 </div>
 
@@ -188,20 +186,5 @@ export default function Home() {
         )}
       </div>
     </div>
-  );
-}
-
-/** Build presentation frames from augmented data. */
-export function buildFrames(augmented: AugmentedFrame[]): BarRaceFrame[] {
-  return augmented.map((frame) =>
-    Object.values(frame).map((it) => ({
-      id: it.model,
-      name: it.niceModel,
-      description: it.bestMove,
-      value: it.bestScore,
-      color: it.color,
-      iconSrc: it.logoSrc ?? "",
-      company: it.company,
-    }))
   );
 }

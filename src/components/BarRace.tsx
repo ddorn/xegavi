@@ -16,7 +16,6 @@ export interface BarRaceProps {
   transitionDurationSec?: number;
   onSelectedIdChange?: (id: string | null, round: number) => void;
   heatmapMode?: HeatmapMode;
-  getTokenScores?: (id: string, round: number) => TokenScoresList | null;
   selectedId?: string | null;
   heatmapLines?: number;
   displayDescription?: boolean;
@@ -50,7 +49,7 @@ function HeatmapFooter({ tokenScoresList, height = 8, numLines = 1 }: { tokenSco
   );
 }
 
-export function BarRace({ frames, round, barHeight = 36, transitionDurationSec = 0.6, onSelectedIdChange, heatmapMode = "none", getTokenScores, selectedId, heatmapLines = 1, displayDescription = false, moveAlignment = "left" }: BarRaceProps) {
+export function BarRace({ frames, round, barHeight = 24, transitionDurationSec = 0.6, onSelectedIdChange, heatmapMode = "none", selectedId, heatmapLines = 1, displayDescription = false, moveAlignment = "left" }: BarRaceProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const nRounds = frames.length;
@@ -105,7 +104,6 @@ export function BarRace({ frames, round, barHeight = 36, transitionDurationSec =
       <div
         className="relative w-full"
         style={{ height: containerHeight }}
-        data-tour="bar-race"
       >
         {idsSortedByValue.map((id) => {
           const it = currentFrameItems.get(id)!;
@@ -113,7 +111,7 @@ export function BarRace({ frames, round, barHeight = 36, transitionDurationSec =
           const y = rank * rowSlotHeight;
           const widthPct = maxValue > 0 ? (it.value / maxValue) * 100 : 0;
 
-          const tokenScoresList = getTokenScores?.(id, safeRound) ?? null;
+          const tokenScoresList = it.tokenScoresList ?? null;
 
           let slots: { prefix?: ReactNode; overlay?: ReactNode; footer?: ReactNode; } | undefined;
           if (tokenScoresList) {

@@ -4,3 +4,4 @@ zsh: command not found: /opt/cursor-bin/cursor-bin.AppImage
 dist
 .next-dev
 public/games
+public/daily/

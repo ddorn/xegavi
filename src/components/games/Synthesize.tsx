@@ -2,6 +2,7 @@ import type { Dataset, GameDisplay, RawGameResult, RoundDisplayProps } from "@/l
 import { RaceData } from "@/lib/barRace";
 import { MoveAndTokenSections } from "@/components/MoveAndTokenSections";
 import { parseBenchmarkToDataset, getRewardEvents, getElicitEvents } from "@/lib/dataset";
+import { anchorSelector, Anchors } from "../TourGuide";
 
 function SynthesizeRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayProps) {
     const explainerRound = focusedModelId ? raceData.roundsFor(focusedModelId)[round] : null;
@@ -56,4 +57,12 @@ export const Synthesize: GameDisplay = {
     const ds = parseSynthesizeBenchmarkToDataset(raw);
     return new RaceData(ds);
   },
+    tourIntro: {
+        steps: [
+            {
+                text: "In Synthesize, a short prefix should help predict three unrelated texts at once.",
+                attachTo: { element: anchorSelector(Anchors.gameRules), on: "bottom" },
+            },
+        ],
+    },
 };

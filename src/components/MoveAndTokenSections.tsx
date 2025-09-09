@@ -4,6 +4,7 @@ import { pickTextColor } from "@/lib/colors";
 import { modelColor, niceModelName } from "@/lib/model-metadata";
 import type { TokenScoresList } from "@/lib/types";
 import { Fragment } from "react";
+import { Anchors, TourAnchor } from "./TourGuide";
 
 export type TokenSection = {
     label: string;
@@ -26,9 +27,9 @@ export function MoveAndTokenSections({ model, move, sections }: MoveAndTokenSect
                 {sections.map((s, i) => (
                     <Fragment key={i}>
                         <div className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:text-right">{s.label}</div>
-                        <div data-tour={i === 0 ? "explainer-tokens" : undefined}>
+                        <TourAnchor anchor={Anchors.explainerTokens}>
                             <TokenMultilineText tokenScoresList={s.tokenScoresList} numLines={s.numLines}/>
-                        </div>
+                        </TourAnchor>
                     </Fragment>
                 ))}
             </div>

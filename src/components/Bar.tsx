@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { pickTextColor } from "@/lib/colors";
 import type { BarRaceItem } from "@/lib/barRace";
+import { Anchors, anchorToProps } from "./TourGuide";
 
 export interface BarProps {
   item: BarRaceItem;
@@ -43,8 +44,7 @@ export function Bar({ item, widthPct, barHeight, logo, onClick, transitionDurati
           style={solidBackground ? { backgroundColor: item.color, height: barHeight } : { height: barHeight }}
           className={`relative overflow-hidden flex justify-between items-center border border-transparent`}
           onClick={onClick}
-          data-bar-id={item.id}
-          data-bar-name={item.name}
+          {...anchorToProps(Anchors.barForModel(item.id))}
         >
           {slots?.overlay}
           <div
@@ -60,9 +60,9 @@ export function Bar({ item, widthPct, barHeight, logo, onClick, transitionDurati
           </div>
           <div className="mx-2 font-semibold text-xs sm:text-sm z-10" style={{ color: computedTextColor }}>
             {item.value.toFixed(1)}
-            </div>
+          </div>
           {slots?.footer}
-          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

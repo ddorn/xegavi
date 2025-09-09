@@ -19,5 +19,8 @@ export function ColorScaleProvider({ maxAbsScore, children }: ColorScaleProvider
 
 export function useColorScale(): ColorScaleContextValue {
   const ctx = useContext(ColorScaleContext);
-  return ctx ?? { maxAbsScore: 0 };
+  if (!ctx) {
+    console.warn("ColorScaleContext not found, using default maxAbsScore of 10");
+  }
+  return ctx ?? { maxAbsScore: 10 };
 }

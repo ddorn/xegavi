@@ -2,6 +2,7 @@ import type { Dataset, GameDisplay, RawGameResult, RoundDisplayProps } from "@/l
 import { RaceData } from "@/lib/barRace";
 import { MoveAndTokenSections } from "@/components/MoveAndTokenSections";
 import { parseBenchmarkToDataset, getRewardEvents, getElicitEvents } from "@/lib/dataset";
+import { anchorSelector, Anchors } from "../TourGuide";
 
 function ContrastRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayProps) {
     const explainerRound = focusedModelId ? raceData.roundsFor(focusedModelId)[round] : null;
@@ -60,4 +61,12 @@ export const Contrast: GameDisplay = {
     const ds = parseContrastBenchmarkToDataset(raw);
       return new RaceData(ds);
   },
+    tourIntro: {
+        steps: [
+            {
+                text: "In Contrast, a sentence should make the Positive text likely and the Negative text unlikely.",
+                attachTo: { element: anchorSelector(Anchors.gameRules), on: "bottom" },
+            },
+        ],
+    },
 };
