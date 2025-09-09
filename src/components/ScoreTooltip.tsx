@@ -9,7 +9,7 @@ export interface ScoreTooltipProps {
 
 // Factory returning a tooltip renderer with fixed keys
 export function makeScoreTooltip({ currentKey = "current", bestKey = "best" }: ScoreTooltipProps) {
-  return function ScoreTooltipRenderer(props: any) {
+    return function ScoreTooltipRenderer(props: unknown) {
     const { active, payload, label } = props as {
       active?: boolean;
       payload?: Array<{ dataKey: string; value: number }>;

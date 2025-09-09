@@ -3,7 +3,9 @@ import { ALL_GAMES } from "@/components/games/games";
 import type { GameDisplay } from "@/lib/types";
 import type { RaceData } from "@/lib/barRace";
 
+
 type Loader = () => Promise<unknown>;
+
 
 type UseDatasetResult = {
   game: GameDisplay | null;
@@ -29,17 +31,17 @@ function detectGameNameFromRaw(raw: unknown): string {
     throw new Error(`First array item is not an object: ${typeof firstItem}`);
   }
 
-  const game = (firstItem as any).game;
-  if (!game || typeof game !== 'object') {
+  const gameObj = (firstItem as Record<string, unknown>)["game"];
+  if (!gameObj || typeof gameObj !== 'object') {
     throw new Error("Missing or invalid 'game' property in first item");
   }
 
-  const gameGame = game.game;
-  if (!gameGame || typeof gameGame !== 'object') {
+  const gameGameObj = (gameObj as Record<string, unknown>)["game"];
+  if (!gameGameObj || typeof gameGameObj !== 'object') {
     throw new Error("Missing or invalid 'game.game' property");
   }
 
-  const name = gameGame.name;
+  const name = (gameGameObj as Record<string, unknown>)["name"];
   if (!name || typeof name !== 'string') {
     throw new Error("Missing or invalid 'game.game.name' property");
   }

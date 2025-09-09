@@ -264,7 +264,7 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                      fontWeight: isCurrent ? 600 as any : undefined
+                      fontWeight: isCurrent ? 600 : undefined
                     }}
                       initial={{ opacity: 0}}
                       animate={{ opacity: 0.85}}

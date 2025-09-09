@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, ReferenceLine, ReferenceDot, Label, Tooltip } from "recharts";
+import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, Tooltip } from "recharts";
 import { makeScoreTooltip } from "@/components/ScoreTooltip";
 
 export interface RoundHistoryVerticalChartProps {
@@ -14,7 +14,7 @@ export interface RoundHistoryVerticalChartProps {
 }
 
 export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, height, color = "#3b82f6", className }: RoundHistoryVerticalChartProps) {
-  const { data, rankedRounds, xMin, xMax } = useMemo(() => {
+  const { data } = useMemo(() => {
     let best = Number.NEGATIVE_INFINITY;
     const d = scores.map((score, idx) => {
       best = Math.max(best, score);
@@ -25,15 +25,7 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
       };
     });
 
-    // top 3 rounds by final score (not best-so-far). If ties, earlier rounds first.
-    const ranked = scores
-      .map((s, i) => ({ round: i + 1, score: s }))
-      .sort((a, b) => (b.score - a.score) || (a.round - b.round));
-
-    const minVal = Math.min(0, ...scores);
-    const maxVal = Math.max(0, ...scores);
-
-    return { data: d, rankedRounds: ranked, xMin: minVal, xMax: maxVal };
+    return { data: d };
   }, [scores]);
 
   if (!scores.length) return null;
@@ -44,11 +36,6 @@ export function RoundHistoryVerticalChart({ scores, rowHeight, width = 140, heig
   const yMin = 0.5;
   const yMax = scores.length + 0.5;
   const yTicks = scores.map((_, i) => i + 1);
-
-  // Medal line segment extents
-  const range = Math.max(1e-6, xMax - xMin);
-  const segRight = xMax + range * 0; // small padding from the right
-  const segLeft  = 0;
 
   const TooltipRenderer = makeScoreTooltip({ currentKey: "current", bestKey: "best" });
 
