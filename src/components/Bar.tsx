@@ -18,9 +18,11 @@ export interface BarProps {
     overlay?: React.ReactNode; // absolute overlay covering the bar fill
     footer?: React.ReactNode; // absolute bottom stripe inside the bar fill
   };
+  displayDescription?: boolean;
+  moveAlignment?: "left" | "right";
 }
 
-export function Bar({ item, widthPct, barHeight, logo, onClick, transitionDurationSec = 1, textColorOverride, solidBackground = true, slots }: BarProps) {
+export function Bar({ item, widthPct, barHeight, logo, onClick, transitionDurationSec = 1, textColorOverride, solidBackground = true, slots, displayDescription = false, moveAlignment = "left" }: BarProps) {
   const computedTextColor = textColorOverride ?? pickTextColor(item.color);
   const width = `${Math.max(0, Math.min(100, widthPct)).toFixed(4)}%`;
   return (
@@ -51,6 +53,9 @@ export function Bar({ item, widthPct, barHeight, logo, onClick, transitionDurati
             title={`${item.name}: ${item.description}`}
           >
             <span className="font-black">{item.name}</span>
+            {displayDescription && (
+              <span className={`ml-2 sm:ml-4 opacity-90 overflow-hidden text-ellipsis ${moveAlignment === "left" ? "text-left" : "text-right"}`}>{item.description}</span>
+            )}
             {/* <span className="ml-2 sm:ml-4 opacity-90 overflow-hidden text-ellipsis">{item.description}</span> */}
           </div>
           <div className="mx-2 font-semibold text-xs sm:text-sm z-10" style={{ color: computedTextColor }}>

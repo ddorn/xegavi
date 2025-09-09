@@ -6,7 +6,7 @@ import { Bar } from "@/components/Bar";
 import { Logo } from "@/components/Logo";
 import { motion } from "motion/react";
 import { TokenScoreHeatmapRow } from "@/components/TokenScoreHeatmapRow";
-import type { HeatmapMode, TokenScores, TokenScoresList } from "@/lib/types";
+import type { HeatmapMode, TokenScoresList } from "@/lib/types";
 import { useTheme } from "next-themes";
 
 export interface BarRaceProps {
@@ -18,36 +18,39 @@ export interface BarRaceProps {
   heatmapMode?: HeatmapMode;
   getTokenScores?: (id: string, round: number) => TokenScoresList | null;
   selectedId?: string | null;
+  heatmapLines?: number;
+  displayDescription?: boolean;
+  moveAlignment?: "left" | "right";
 }
 
 const PREFIX_WIDTH_PCT = 30;
 const OVERLAY_MARGIN_EM = 3; // reserve ~2em at the right of the common overlay
 
-function HeatmapPrefix({ tokenScoresList, barHeight, widthPct = PREFIX_WIDTH_PCT }: { tokenScoresList: TokenScoresList; barHeight: number; widthPct?: number; }) {
+function HeatmapPrefix({ tokenScoresList, barHeight, widthPct = PREFIX_WIDTH_PCT, numLines = 1 }: { tokenScoresList: TokenScoresList; barHeight: number; widthPct?: number; numLines?: number; }) {
   return (
     <div className="shrink-0" style={{ width: `${widthPct}%`, height: barHeight }}>
-      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={1} />
+      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={numLines} />
     </div>
   );
 }
 
-function HeatmapOverlay({ tokenScoresList }: { tokenScoresList: TokenScoresList; }) {
+function HeatmapOverlay({ tokenScoresList, numLines = 1 }: { tokenScoresList: TokenScoresList; numLines?: number; }) {
   return (
     <div className="absolute inset-0 z-0 pointer-events-none">
-      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={1} />
+      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={numLines} />
     </div>
   );
 }
 
-function HeatmapFooter({ tokenScoresList, height = 8 }: { tokenScoresList: TokenScoresList; height?: number; }) {
+function HeatmapFooter({ tokenScoresList, height = 8, numLines = 1 }: { tokenScoresList: TokenScoresList; height?: number; numLines?: number; }) {
   return (
     <div className="absolute left-0 right-0 bottom-0" style={{ height }}>
-      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={1} />
+      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={numLines} />
     </div>
   );
 }
 
-export function BarRace({ frames, round, barHeight = 36, transitionDurationSec = 0.6, onSelectedIdChange, heatmapMode = "none", getTokenScores, selectedId }: BarRaceProps) {
+export function BarRace({ frames, round, barHeight = 36, transitionDurationSec = 0.6, onSelectedIdChange, heatmapMode = "none", getTokenScores, selectedId, heatmapLines = 1, displayDescription = false, moveAlignment = "left" }: BarRaceProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const nRounds = frames.length;
@@ -115,11 +118,11 @@ export function BarRace({ frames, round, barHeight = 36, transitionDurationSec =
           let slots: { prefix?: ReactNode; overlay?: ReactNode; footer?: ReactNode; } | undefined;
           if (tokenScoresList) {
             if (heatmapMode === "prefix") {
-              slots = { prefix: <HeatmapPrefix tokenScoresList={tokenScoresList} barHeight={barHeight} /> };
+              slots = { prefix: <HeatmapPrefix tokenScoresList={tokenScoresList} barHeight={barHeight} numLines={heatmapLines} /> };
             } else if (heatmapMode === "full") {
-              slots = { overlay: <HeatmapOverlay tokenScoresList={tokenScoresList} /> };
+              slots = { overlay: <HeatmapOverlay tokenScoresList={tokenScoresList} numLines={heatmapLines} /> };
             } else if (heatmapMode === "bottomStripe") {
-              slots = { footer: <HeatmapFooter tokenScoresList={tokenScoresList} /> };
+              slots = { footer: <HeatmapFooter tokenScoresList={tokenScoresList} numLines={heatmapLines} /> };
             } else if (heatmapMode === "overlayAligned") {
               // For each bar, use overlay width relative to its fill so absolute width equals minFillPct of the stage
               const overlayPctOfFill = widthPct > 0 ? Math.min(100, (minFillPct / widthPct) * 100) : 0;
@@ -131,7 +134,7 @@ export function BarRace({ frames, round, barHeight = 36, transitionDurationSec =
                   transition={{ duration: transitionDurationSec }}
                 >
                   <div style={{ width: `calc(100% - ${OVERLAY_MARGIN_EM}em)`, height: "100%" }}>
-                    <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={1} />
+                    <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={heatmapLines} />
                   </div>
                 </motion.div>
               );
@@ -171,6 +174,8 @@ export function BarRace({ frames, round, barHeight = 36, transitionDurationSec =
                   solidBackground={solidBackground}
                   textColorOverride={textColorOverride}
                   slots={slots}
+                  displayDescription={displayDescription}
+                  moveAlignment={moveAlignment}
                 />
                 {isSelected && (
                   <div className="pointer-events-none absolute top-0 left-0 h-full w-full ring-2 ring-black dark:ring-white ring-offset-2" />

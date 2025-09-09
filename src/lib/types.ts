@@ -36,6 +36,7 @@ export type GameDisplay = {
   /// Component factory to display the round header (prefix + highlighted tokens)
   roundDisplay: (props: RoundDisplayProps) => React.ReactNode;
   barRaceData: (data: unknown) => RaceData | null;
+  barRaceOptions?: BarRaceOptions;
 };
 
 // -------------------- Raw benchmark (minimal) schemas --------------------

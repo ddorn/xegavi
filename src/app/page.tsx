@@ -163,6 +163,9 @@ export default function Home() {
                       heatmapMode="prefix"
                       getTokenScores={getTokenScores}
                       selectedId={focusedModelId}
+                      heatmapLines={game.barRaceOptions?.heatmapLines}
+                      displayDescription={game.barRaceOptions?.displayMove}
+                      moveAlignment={game.barRaceOptions?.moveAlignment}
                     />
                   </div>
 

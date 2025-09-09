@@ -14,9 +14,9 @@ function SynthesizeRoundDisplay({ raceData, focusedModelId, round }: RoundDispla
             model={explainerRound.model}
             move={explainerRound.bestMove}
             sections={[
-                { label: "Text 1:", tokenScoresList: [explainerRound.bestTokenScores?.[0] ?? []], numLines: 2 },
-                { label: "Text 2:", tokenScoresList: [explainerRound.bestTokenScores?.[1] ?? []], numLines: 2 },
-                { label: "Text 3:", tokenScoresList: [explainerRound.bestTokenScores?.[2] ?? []], numLines: 2 },
+                { label: "Text 1:", tokenScoresList: [explainerRound.bestTokenScores?.[0] ?? []], numLines: 0 },
+                { label: "Text 2:", tokenScoresList: [explainerRound.bestTokenScores?.[1] ?? []], numLines: 0 },
+                { label: "Text 3:", tokenScoresList: [explainerRound.bestTokenScores?.[2] ?? []], numLines: 0 },
             ]}
         />
     );

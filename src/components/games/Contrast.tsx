@@ -14,8 +14,8 @@ function ContrastRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayP
             model={explainerRound.model}
             move={explainerRound.bestMove}
             sections={[
-                { label: "Positive text:", tokenScoresList: [explainerRound.bestTokenScores?.[0] ?? []], numLines: 2 },
-                { label: "Negative text:", tokenScoresList: [explainerRound.bestTokenScores?.[1] ?? []], numLines: 2 },
+                { label: "Positive text:", tokenScoresList: [explainerRound.bestTokenScores?.[0] ?? []], numLines: 0 },
+                { label: "Negative text:", tokenScoresList: [explainerRound.bestTokenScores?.[1] ?? []], numLines: 0 },
             ]}
         />
     );
