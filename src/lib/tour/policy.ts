@@ -10,8 +10,8 @@ export const DefaultPolicy: EventPolicy = {
     first_to_top: 20.0,
     lead_change: 1.0,
     big_jump: 1.0,
-    max_token_positive: 0.4,
-    max_token_negative: 0.2,
+    max_token_positive: 0,
+    max_token_negative: 0,
   },
   mins: {
     big_jump: 1.0,

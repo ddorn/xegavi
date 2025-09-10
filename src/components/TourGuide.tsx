@@ -15,6 +15,7 @@ import { eventToSteps, type StepsContext } from "@/lib/tour/eventToSteps";
 
 export type TourGuideProps = {
   raceData: RaceData | null;
+  playback: Playback;
   setPlayback: (next: Playback | ((prev: Playback) => Playback)) => void;
   setFocusedModelId: (id: string | null) => void;
   startSignal: number; // increment to (re)start the tour
@@ -45,12 +46,14 @@ export function anchorToProps(anchor: string) {
 
 export default function TourGuide({
   raceData,
+  playback,
   setPlayback,
   setFocusedModelId,
   startSignal,
   game,
 }: TourGuideProps) {
   const shepherdRef = useRef<Tour | null>(null);
+  const currentStepAdvanceRef = useRef<{ round: number; } | null>(null);
 
   function clearEmphasis() {
     document.querySelectorAll(".tour-emph").forEach((n) => n.classList.remove("tour-emph"));
@@ -107,6 +110,7 @@ export default function TourGuide({
     // 2) Generic explainer steps (independent of game, but using selected model if any)
     const modelId = selected?.modelId ?? raceData.finalists()[0];
     if (!modelId) throw new Error("Empty race");
+    const roundEndGenericSteps = selected?.round ?? raceData?.roundsLength - 1 ?? 0;
 
     const generic: StepTemplate[] = [
       {
@@ -142,7 +146,14 @@ export default function TourGuide({
         id: "play-race",
         attachTo: { element: anchorSelector(Anchors.playButton), on: "top" },
         text: "Let's see how it does!",
-        onHide: [() => setPlayback((prev) => ({ ...prev, isPlaying: true }))],
+      },
+      {
+        id: "watch-leaderboard",
+        attachTo: { element: anchorSelector(Anchors.barRace), on: "top" },
+        text: `How does ${niceModelName(modelId)} do? (I don't know, I'm just a tooltip...)`,
+        onShow: [() => setPlayback((prev) => ({ ...prev, round: 0, isPlaying: true }))],
+        onHide: [() => setPlayback((prev) => ({ ...prev, round: roundEndGenericSteps, isPlaying: false }))],
+        advanceOn: { round: roundEndGenericSteps },
       },
     ];
 
@@ -178,16 +189,26 @@ export default function TourGuide({
         text: s.text,
         attachTo: s.attachTo,
         buttons: [cancelButton, previousButton, nextButton],
-        advanceOn: (s as any).advanceOn,
+        advanceOn: s.advanceOn && 'selector' in s.advanceOn ? s.advanceOn : undefined,
         when: {
           show: () => {
             s.onShow?.forEach(fn => fn());
-            const anchor = document.querySelector((s.attachTo as any).element);
+            const anchor = document.querySelector(s.attachTo.element);
             scrollIntoViewNicely(anchor);
+
+            // Set up round-based auto-advance if needed
+            if (s.advanceOn && 'round' in s.advanceOn) {
+              currentStepAdvanceRef.current = s.advanceOn;
+            } else {
+              currentStepAdvanceRef.current = null;
+            }
           },
-          hide: () => s.onHide?.forEach(fn => fn()),
+          hide: () => {
+            s.onHide?.forEach(fn => fn());
+            currentStepAdvanceRef.current = null;
+          },
         },
-      } as any);
+      });
     }
   }, [raceData, setPlayback, setFocusedModelId, selected, game]);
 
@@ -197,6 +218,17 @@ export default function TourGuide({
       shepherdRef.current.start();
     }
   }, [startSignal]);
+
+  // Auto-advance when target round is reached
+  useEffect(() => {
+    if (!shepherdRef.current || !currentStepAdvanceRef.current) return;
+
+    const targetRound = currentStepAdvanceRef.current.round;
+    if (playback.round >= targetRound) {
+      shepherdRef.current.next();
+      currentStepAdvanceRef.current = null;
+    }
+  }, [playback.round]);
 
   return null;
 }

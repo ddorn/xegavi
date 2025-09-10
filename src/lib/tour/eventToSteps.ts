@@ -1,6 +1,7 @@
 import type { Playback } from "@/lib/types";
 import type { Event, StepTemplate } from "./types";
 import { Anchors, anchorSelector } from "@/components/TourGuide";
+import { niceModelName } from "../model-metadata";
 
 export type StepsContext = {
   setPlayback: (next: Playback | ((prev: Playback) => Playback)) => void;
@@ -9,24 +10,19 @@ export type StepsContext = {
   emphasizeTopRanks: (isPositive: boolean, maxCount?: number) => void;
 };
 
+
 export function eventToSteps(event: Event, context: StepsContext): StepTemplate[] {
   const { setPlayback, setFocusedModelId, clearEmphasis, emphasizeTopRanks } = context;
+  const modelName = niceModelName(event.modelId);
 
   if (event.type === "first_to_top") {
+    const rank = event.details.startRank + 1;
+    const rankEnglish = numberToEnglishOrdinal(rank);
     return [
-      {
-        id: "watch-race",
-        attachTo: { element: anchorSelector(Anchors.barRace), on: "top" },
-        text: "Watch the leaderboard.",
-        onShow: [
-          () => setFocusedModelId(event.modelId),
-          () => setPlayback((prev) => ({ ...prev, isPlaying: true }))
-        ],
-      },
       {
         id: "first-to-top",
         attachTo: { element: anchorSelector(Anchors.barRace), on: "top" },
-        text: "This model reaches #1.",
+        text: `It's a new #1! Well done for ${modelName} who started ${rankEnglish}!`,
         onShow: [() => setPlayback((prev) => ({ ...prev, isPlaying: false, round: event.round }))],
       },
     ];
@@ -35,7 +31,7 @@ export function eventToSteps(event: Event, context: StepsContext): StepTemplate[
       {
         id: "jump-bar",
         attachTo: { element: anchorSelector(Anchors.barForModel(event.modelId)), on: "right" },
-        text: "Large single-round improvement for this model.",
+        text: `Wow that was a big jump! ${modelName} improved by ${event.details.delta.toFixed(1)} bits.`,
         onShow: [
           () => setFocusedModelId(event.modelId),
           () => setPlayback((prev) => ({ ...prev, isPlaying: false, round: event.round }))
@@ -47,7 +43,7 @@ export function eventToSteps(event: Event, context: StepsContext): StepTemplate[
       {
         id: "lead-play",
         attachTo: { element: anchorSelector(Anchors.playButton), on: "right" },
-        text: "Press play to watch for the lead change.",
+        text: `${modelName} just passed ${niceModelName(event.details.previousLeaderId)} to lead by ${event.details.margin.toFixed(1)} bits!`,
         advanceOn: { selector: Anchors.playButton, event: "click" },
         onShow: [() => setPlayback((prev) => ({ ...prev, isPlaying: true }))],
       },
@@ -74,4 +70,21 @@ export function eventToSteps(event: Event, context: StepsContext): StepTemplate[
   }
 
   return [];
+}
+
+
+const numberToEnglishOrdinal = (n: number) => {
+  if (n % 100 === 11 || n % 100 === 12 || n % 100 === 13) {
+    return `${n}th`;
+  }
+  if (n % 10 === 1) {
+    return `${n}st`;
+  }
+  if (n % 10 === 2) {
+    return `${n}nd`;
+  }
+  if (n % 10 === 3) {
+    return `${n}rd`;
+  }
+  return `${n}th`;
 }

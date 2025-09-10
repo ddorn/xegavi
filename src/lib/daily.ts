@@ -8,9 +8,10 @@ export const DailyDaySchema = z.object({
   bestModel: z.string(),
   bestScore: z.number().finite(),
 });
-export type DailyDay = z.infer<typeof DailyDaySchema>;
 
 export const DailyMonthSchema = z.record(z.string(), DailyDaySchema);
+
+export type DailyDay = z.infer<typeof DailyDaySchema>;
 export type DailyMonth = z.infer<typeof DailyMonthSchema>;
 
 export function parseUTCDate(value: string): Date | null {
@@ -65,8 +66,12 @@ export function buildMonthGridMonday(date: Date): Array<Array<Date | null>> {
   let current = new Date(first);
   current.setUTCDate(current.getUTCDate() - firstWeekdayMon0);
 
-  // 6 weeks to cover all cases
-  for (let w = 0; w < 6; w++) {
+  // Calculate how many weeks we actually need
+  const lastWeekdayMon0 = (last.getUTCDay() + 6) % 7;
+  const totalDays = firstWeekdayMon0 + last.getUTCDate();
+  const weeksNeeded = Math.ceil(totalDays / 7);
+
+  for (let w = 0; w < weeksNeeded; w++) {
     const week: Array<Date | null> = [];
     for (let i = 0; i < 7; i++) {
       week.push(new Date(current));

@@ -11,9 +11,13 @@ import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import { BarRace } from "@/components/BarRace";
 import { Slider } from "@/components/Slider";
 import { ControlBar } from "@/components/ControlBar";
+import DailyCalendar from "@/components/DailyCalendar";
+import { useDailyGameSelection } from "@/hooks/useDailyGameSelection";
 
 export default function LabPage() {
-  const { game, raceData, error, loadFromUrl } = useDataset();
+  const { selectedGameUrl, selectedDateUTC, selectDate } = useDailyGameSelection("2025-09-05");
+  const [datasetUrl, setDatasetUrl] = useState<string | null>(null);
+  const { game, raceData, error } = useDataset(datasetUrl);
 
   // List game files from the local API for easy selection
   const [availableFiles, setAvailableFiles] = useState<Array<{ name: string; url: string }>>([]);
@@ -149,6 +153,15 @@ export default function LabPage() {
           {!raceData && !error && (
             <div className="text-sm opacity-80">Load or upload a dataset to get started.</div>
           )}
+
+          {/* Calendar / Archive */}
+          <div className="mt-8">
+            <h2 className="font-semibold mb-2">Daily Game Archive</h2>
+            <DailyCalendar
+              selectedDateUTC={selectedDateUTC}
+              onSelectDay={selectDate}
+            />
+          </div>
         </div>
       </div>
 
@@ -162,9 +175,7 @@ export default function LabPage() {
             value={selectedFile}
             onChange={(e) => {
               setSelectedFile(e.target.value);
-              if (e.target.value) {
-                loadFromUrl(e.target.value);
-              }
+              setDatasetUrl(e.target.value || null);
             }}
           >
             <option value="">— Select a file —</option>

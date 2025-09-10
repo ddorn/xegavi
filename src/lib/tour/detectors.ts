@@ -1,5 +1,6 @@
 import type { RaceData } from "@/lib/barRace";
-import type { Event } from "./types";
+import type { BigJumpEvent, Event, FirstToTopEvent, LeadChangeEvent, MaxTokenPositiveEvent } from "./types";
+import type { MaxTokenNegativeEvent } from "./types";
 import type { TokenScoresList } from "@/lib/types";
 
 /**
@@ -86,8 +87,8 @@ function findMaxTokenChange(
  * Only triggers for models that weren't already in first place at the start.
  * The magnitude represents how many positions the model climbed.
  */
-export function detectFirstToTop(race: RaceData): Event[] {
-  const events: Event[] = [];
+export function detectFirstToTop(race: RaceData): FirstToTopEvent[] {
+  const events: FirstToTopEvent[] = [];
   if (race.augmented.length === 0) return events;
   const modelIds = Object.keys(race.augmented[0]);
   const startRanks: Record<string, number> = {};
@@ -132,8 +133,8 @@ export function detectFirstToTop(race: RaceData): Event[] {
  * The magnitude is the score increase multiplied by n / (n+2) where n is the
  * round where it happens. This deprioritizes early jumps.
  */
-export function detectBigJumps(race: RaceData): Event[] {
-  const events: Event[] = [];
+export function detectBigJumps(race: RaceData): BigJumpEvent[] {
+  const events: BigJumpEvent[] = [];
   const modelIds = Object.keys(race.augmented[0] ?? {});
 
   for (const modelId of modelIds) {
@@ -176,8 +177,8 @@ export function detectBigJumps(race: RaceData): Event[] {
  * Tracks leadership transitions and measures the margin between new leader and runner-up.
  * The magnitude represents the score difference between leader and second place.
  */
-export function detectLeadChanges(race: RaceData): Event[] {
-  const events: Event[] = [];
+export function detectLeadChanges(race: RaceData): LeadChangeEvent[] {
+  const events: LeadChangeEvent[] = [];
 
   let prevLeader: string | null = null;
   for (let r = 0; r < race.augmented.length; r++) {
@@ -217,8 +218,8 @@ export function detectLeadChanges(race: RaceData): Event[] {
  * Compares token scores between consecutive rounds to find the biggest gain.
  * The magnitude represents the actual score increase of the token.
  */
-export function detectMaxTokenPositive(race: RaceData): Event[] {
-  const events: Event[] = [];
+export function detectMaxTokenPositive(race: RaceData): MaxTokenPositiveEvent[] {
+  const events: MaxTokenPositiveEvent[] = [];
 
   for (let r = 1; r < race.augmented.length; r++) {
     const prevFrame = race.augmented[r - 1];
@@ -257,8 +258,8 @@ export function detectMaxTokenPositive(race: RaceData): Event[] {
  * Compares token scores between consecutive rounds to find the biggest loss.
  * The magnitude represents the absolute value of the score decrease of the token.
  */
-export function detectMaxTokenNegative(race: RaceData): Event[] {
-  const events: Event[] = [];
+export function detectMaxTokenNegative(race: RaceData): MaxTokenNegativeEvent[] {
+  const events: MaxTokenNegativeEvent[] = [];
 
   for (let r = 1; r < race.augmented.length; r++) {
     const prevFrame = race.augmented[r - 1];

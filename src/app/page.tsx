@@ -5,21 +5,26 @@ import { type Playback } from "@/lib/types";
 import { BarRace } from "@/components/BarRace";
 import type { AugmentedFrame, BarRaceFrame } from "@/lib/barRace";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { BarRaceControls } from "@/components/BarRaceControls";
+import { BarRaceControls, usePlayback } from "@/components/BarRaceControls";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScoresList } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import TourGuide, { TourAnchor, anchorToProps, Anchors } from "@/components/TourGuide";
-import DailyArchive from "@/components/DailyArchive";
+import DailyCalendar from "@/components/DailyCalendar";
+import { useDailyGameSelection } from "@/hooks/useDailyGameSelection";
+
 
 export default function Home() {
-  const [datasetUrl, setDatasetUrl] = useState<string | null>(null);
-  const { game, raceData, error } = useDataset(datasetUrl);
+  const { selectedGameUrl, selectedDateUTC, selectDate } = useDailyGameSelection("2025-09-05");
+  const { game, raceData, error } = useDataset(selectedGameUrl);
 
   const frames = useMemo(() => (raceData ? raceData.buildFrames() : []), [raceData]);
 
-  const [playbackState, setPlaybackState] = useState<Playback>({ isPlaying: true, round: 0, speed: 1 });
+  const { playback: playbackState, setPlayback: setPlaybackState } = usePlayback(
+    raceData?.roundsLength ?? 0,
+    { isPlaying: true, round: 0, speed: 1 }
+  );
 
   // Reset round to 0 state when race data changes
   useEffect(() => {
@@ -28,15 +33,6 @@ export default function Home() {
   }, [raceData]);
 
   const stepDurationMs = Math.max(1, Math.round(1000 / (playbackState.speed || 1)) * 0.7);
-
-  useEffect(() => {
-    const n = raceData?.roundsLength ?? 0;
-    if (!playbackState.isPlaying || n === 0) return;
-    const id = setInterval(() => {
-      setPlaybackState((s) => ({ ...s, round: (s.round + 1) % Math.max(1, n) }));
-    }, stepDurationMs);
-    return () => clearInterval(id);
-  }, [playbackState.isPlaying, stepDurationMs, raceData?.roundsLength]);
 
   const [focusedModelId, setFocusedModelId] = useState<string | null>(null);
 
@@ -58,6 +54,10 @@ export default function Home() {
   }, [raceData]);
 
   const [startSignal, setStartSignal] = useState(0);
+
+
+  // --- Calendar State & Logic ---
+  const monthLabel = selectedDateUTC ? new Intl.DateTimeFormat(undefined, { year: "numeric", month: "long", timeZone: "UTC" }).format(selectedDateUTC) : "";
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
@@ -106,6 +106,7 @@ export default function Home() {
 
               <TourGuide
                 raceData={raceData}
+                playback={playbackState}
                 setPlayback={setPlaybackState}
                 setFocusedModelId={setFocusedModelId}
                 startSignal={startSignal}
@@ -116,7 +117,6 @@ export default function Home() {
 
                   <BarRaceControls
                     playback={playbackState}
-                    maxRound={Math.max(0, raceData.roundsLength - 1)}
                     totalRounds={raceData.roundsLength}
                     onPlaybackChange={setPlaybackState}
                   />
@@ -155,7 +155,13 @@ export default function Home() {
         )}
 
         {/* Calendar / Archive */}
-        <DailyArchive onSelectGameUrl={setDatasetUrl} />
+        <div className="mt-12 border rounded-md p-3">
+          <div className="font-semibold text-sm mb-2">Winners of {monthLabel}</div>
+          <DailyCalendar
+            selectedDateUTC={selectedDateUTC}
+            onSelectDay={selectDate}
+          />
+        </div>
       </div>
     </div>
   );
