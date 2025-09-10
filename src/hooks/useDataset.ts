@@ -5,7 +5,11 @@ import type { RaceData } from "@/lib/barRace";
 
 export function useDataset(url: string | null) {
   const shouldFetch = !!url;
-  const { data, error, isLoading, mutate } = useSWR<{ game: GameDisplay; raceData: RaceData }>(shouldFetch ? ["dataset", url] : null, () => loadParsedDataset(url as string));
+  const { data, error, isLoading, mutate } = useSWR<{ game: GameDisplay; raceData: RaceData }>(
+    shouldFetch ? ["dataset", url] : null,
+    () => loadParsedDataset(url as string),
+    { keepPreviousData: true },
+  );
   return {
     game: data?.game ?? null,
     raceData: data?.raceData ?? null,

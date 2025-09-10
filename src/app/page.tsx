@@ -13,11 +13,12 @@ import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import TourGuide, { TourAnchor, anchorToProps, Anchors } from "@/components/TourGuide";
 import DailyCalendar from "@/components/DailyCalendar";
 import { useDailyGameSelection } from "@/hooks/useDailyGameSelection";
+import { ProgressBar } from "@/components/ProgressBar";
 
 
 export default function Home() {
   const { selectedGameUrl, selectedDateUTC, selectDate } = useDailyGameSelection("2025-09-05");
-  const { game, raceData, error } = useDataset(selectedGameUrl);
+  const { game, raceData, error, isLoading } = useDataset(selectedGameUrl);
 
   const frames = useMemo(() => (raceData ? raceData.buildFrames() : []), [raceData]);
 
@@ -60,7 +61,8 @@ export default function Home() {
   const monthLabel = selectedDateUTC ? new Intl.DateTimeFormat(undefined, { year: "numeric", month: "long", timeZone: "UTC" }).format(selectedDateUTC) : "";
 
   return (
-    <div className="min-h-screen px-2 xs:px-6 sm:p-10">
+    <div className="min-h-screen px-2 xs:px-6 sm:p-10 py-6">
+      {isLoading && <ProgressBar />}
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2">
