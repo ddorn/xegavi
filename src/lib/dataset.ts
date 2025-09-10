@@ -1,5 +1,8 @@
 import type { RawElicitResponseEvent } from "./types";
 import { DatasetSchema, type Dataset, type RawBenchmark, RawBenchmarkSchema, type RawRewardEvent, type TokenScoresList, ElicitResponseEventSchema, RewardEventSchema, type RawGameResult } from "./types";
+import { DailyMonthSchema, type DailyMonth } from "@/lib/daily";
+import { ALL_GAMES } from "@/components/games/games";
+import type { GameDisplay } from "@/lib/types";
 
 export function ensureIsSingleGame(results: RawBenchmark) {
 
@@ -66,4 +69,41 @@ export function getRewardEvents(round: RawGameResult): RawRewardEvent[] {
 
 export function getElicitEvents(round: RawGameResult): RawElicitResponseEvent[] {
     return round.xrt_history.filter((e) => e.type === "elicit_response").map((e) => ElicitResponseEventSchema.parse(e));
+}
+
+// ---------------- High-level fetchers ----------------
+
+export async function getMonth(monthKey: string): Promise<DailyMonth> {
+    const res = await fetch(`/daily/${monthKey}.json`, { cache: "force-cache" });
+    if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}`);
+    }
+    const json = await res.json();
+    return DailyMonthSchema.parse(json);
+}
+
+export async function getDataset(url: string): Promise<RawBenchmark> {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}`);
+    }
+    return RawBenchmarkSchema.parse(await res.json());
+}
+
+export function parseDataset(raw: RawBenchmark): { game: GameDisplay; raceData: import("./barRace").RaceData } {
+    // Determine game name from raw input (first entry)
+    const gameName = raw[0]?.game?.game?.name;
+    if (!gameName || typeof gameName !== "string") {
+        throw new Error("Invalid dataset: cannot infer game name");
+    }
+    const game = ALL_GAMES[gameName];
+    if (!game) throw new Error(`Unknown game '${gameName}'`);
+    const rd = game.barRaceData(raw);
+    if (!rd) throw new Error("Failed to convert dataset to race data");
+    return { game, raceData: rd };
+}
+
+export async function loadParsedDataset(url: string): Promise<{ game: GameDisplay; raceData: import("./barRace").RaceData }> {
+    const raw = await getDataset(url);
+    return parseDataset(raw);
 }

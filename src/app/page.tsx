@@ -11,30 +11,15 @@ import type { TokenScoresList } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import TourGuide, { TourAnchor, anchorToProps, Anchors } from "@/components/TourGuide";
+import DailyArchive from "@/components/DailyArchive";
 
 export default function Home() {
-  const { game, raceData, error, onFile, loadFromUrl } = useDataset();
-
-  const [gameFiles, setGameFiles] = useState<Array<{ name: string | null; url: string; }>>([]);
-  useEffect(() => {
-    void (async () => {
-      try {
-        const res = await fetch("/api/games", { cache: "no-store" });
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const json = await res.json();
-        setGameFiles(json.files ?? []);
-      } catch (e) {
-        console.error(e);
-      }
-    })();
-  }, []);
+  const [datasetUrl, setDatasetUrl] = useState<string | null>(null);
+  const { game, raceData, error } = useDataset(datasetUrl);
 
   const frames = useMemo(() => (raceData ? raceData.buildFrames() : []), [raceData]);
 
   const [playbackState, setPlaybackState] = useState<Playback>({ isPlaying: true, round: 0, speed: 1 });
-  const handleRoundChange = useCallback((idx: number) => {
-    setPlaybackState((s) => ({ ...s, round: idx }));
-  }, []);
 
   // Reset round to 0 state when race data changes
   useEffect(() => {
@@ -80,22 +65,6 @@ export default function Home() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <select
-              className="border rounded-md px-2 py-1 bg-white dark:bg-neutral-800 dark:border-neutral-700 text-sm"
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v) {
-                  loadFromUrl(v);
-                }
-              }}
-              defaultValue="/games/Condense_14.json"
-              title="Load a sample game dataset"
-            >
-              <option value="" disabled>Load sample…</option>
-              {gameFiles.map((f) => (
-                <option key={f.url} value={f.url}>{f.name}</option>
-              ))}
-            </select>
           </div>
         </header>
         {error && (
@@ -184,6 +153,9 @@ export default function Home() {
             </div>
           </ColorScaleProvider>
         )}
+
+        {/* Calendar / Archive */}
+        <DailyArchive onSelectGameUrl={setDatasetUrl} />
       </div>
     </div>
   );
