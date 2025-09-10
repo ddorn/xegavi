@@ -2,6 +2,7 @@ import type { Playback } from "@/lib/types";
 import type { Event, StepTemplate } from "./types";
 import { Anchors, anchorSelector } from "@/components/TourGuide";
 import { niceModelName } from "../model-metadata";
+import { numberToEnglishOrdinal } from "../utils";
 
 export type StepsContext = {
   setPlayback: (next: Playback | ((prev: Playback) => Playback)) => void;
@@ -70,21 +71,4 @@ export function eventToSteps(event: Event, context: StepsContext): StepTemplate[
   }
 
   return [];
-}
-
-
-const numberToEnglishOrdinal = (n: number) => {
-  if (n % 100 === 11 || n % 100 === 12 || n % 100 === 13) {
-    return `${n}th`;
-  }
-  if (n % 10 === 1) {
-    return `${n}st`;
-  }
-  if (n % 10 === 2) {
-    return `${n}nd`;
-  }
-  if (n % 10 === 3) {
-    return `${n}rd`;
-  }
-  return `${n}th`;
 }

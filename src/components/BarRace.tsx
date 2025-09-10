@@ -22,6 +22,7 @@ export interface BarRaceProps {
   moveAlignment?: "left" | "right";
 }
 
+const NEGATIVE_WIDTH_PCT = 30;
 const PREFIX_WIDTH_PCT = 30;
 const OVERLAY_MARGIN_EM = 3; // reserve ~2em at the right of the common overlay
 
@@ -49,6 +50,19 @@ function HeatmapFooter({ tokenScoresList, height = 8, numLines = 1 }: { tokenSco
   );
 }
 
+/**
+ * A BarRace component that supports positive and negative values.
+ *
+ * The layout adjusts based on the data for the current frame:
+ * - Positive-only: Bars grow left-to-right from a zero-axis at 0%.
+ * - Negative-only: Bars grow right-to-left from a zero-axis at 100%.
+ * - Mixed: A zero-axis is established at NEGATIVE_WIDTH_PCT (e.g., 30%).
+ *   Negative bars grow right-to-left within the 0-30% space.
+ *   Positive bars grow left-to-right within the 30-100% space.
+ *
+ * This component calculates the layout (`widthPct`, `xZeroPct`, `flipped`) and passes
+ * it to individual `Bar` components for rendering.
+ */
 export function BarRace({ frames, round, barHeight = 24, transitionDurationSec = 0.6, onSelectedIdChange, heatmapMode = "none", selectedId, heatmapLines = 1, displayDescription = false, moveAlignment = "left" }: BarRaceProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -60,7 +74,7 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
   const rowGapPx = barHeight / 3;
   const rowSlotHeight = barHeight + rowGapPx;
 
-  const { currentFrameItems, idsSortedByValue, maxValue } = useMemo(() => {
+  const { currentFrameItems, idsSortedByValue, maxValue, minValue } = useMemo(() => {
     const frame = frames[safeRound] ?? [];
     const arr = [...frame];
     arr.sort((a, b) => {
@@ -68,10 +82,12 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
       return a.name.localeCompare(b.name);
     });
     const idsSortedByValue = arr.map((it) => it.id);
-    const maxValue = arr.reduce((m, it) => Math.max(m, it.value), 0);
+    const values = arr.map((it) => it.value);
+    const minValue = values.reduce((m, it) => Math.min(m, it), 0);
+    const maxValue = values.reduce((m, it) => Math.max(m, it), 0);
     const currentFrameItems = new Map(frame.map((it) => [it.id, it]));
-    return { currentFrameItems, idsSortedByValue, maxValue };
-  }, [frames, safeRound, nRounds]);
+    return { currentFrameItems, idsSortedByValue, maxValue, minValue };
+  }, [frames, safeRound]);
 
   const numRows = idsSortedByValue.length;
   const containerHeight = Math.max(0, numRows * barHeight + Math.max(0, numRows - 1) * rowGapPx);
@@ -109,7 +125,36 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
           const it = currentFrameItems.get(id)!;
           const rank = idsSortedByValue.indexOf(id);
           const y = rank * rowSlotHeight;
-          const widthPct = maxValue > 0 ? (it.value / maxValue) * 100 : 0;
+
+          let widthPct: number;
+          let xZeroPct: number;
+          let flipped: boolean;
+
+          const hasNegative = minValue < 0;
+          const hasPositive = maxValue > 0;
+
+          if (hasNegative && hasPositive) { // Mixed mode
+            const totalRange = maxValue - minValue;
+            const negativeProportion = -minValue / totalRange;
+            const desiredNegativeWidthPct = negativeProportion * 100;
+            xZeroPct = Math.min(desiredNegativeWidthPct, NEGATIVE_WIDTH_PCT);
+
+            if (it.value >= 0) {
+              flipped = false;
+              widthPct = maxValue > 0 ? (it.value / maxValue) * (100 - xZeroPct) : 0;
+            } else {
+              flipped = true;
+              widthPct = minValue < 0 ? (it.value / minValue) * xZeroPct : 0;
+            }
+          } else if (hasNegative) { // Negative only
+            flipped = true;
+            xZeroPct = 100;
+            widthPct = minValue < 0 ? (it.value / minValue) * 100 : 0;
+          } else { // Positive only
+            flipped = false;
+            xZeroPct = 0;
+            widthPct = maxValue > 0 ? (it.value / maxValue) * 100 : 0;
+          }
 
           const tokenScoresList = it.tokenScoresList ?? null;
 
@@ -166,6 +211,8 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
                 <Bar
                   item={it}
                   widthPct={widthPct}
+                  xZeroPct={xZeroPct}
+                  flipped={flipped}
                   barHeight={barHeight}
                   logo={<Logo model={it.id} size={barHeight} />}
                   transitionDurationSec={transitionDurationSec}
@@ -176,7 +223,7 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
                   moveAlignment={moveAlignment}
                 />
                 {isSelected && (
-                  <div className="pointer-events-none absolute top-0 left-0 h-full w-full ring-2 ring-black dark:ring-white ring-offset-2" />
+                  <div className="pointer-events-none absolute top-0 left-0 h-full w-full ring-2 ring-black dark:ring-white ring-offset-2 ring-offset-white dark:ring-offset-black" />
                 )}
               </div>
             </motion.div>

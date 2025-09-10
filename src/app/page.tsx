@@ -10,10 +10,13 @@ import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScoresList } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
-import TourGuide, { TourAnchor, anchorToProps, Anchors } from "@/components/TourGuide";
+import { TourAnchor, anchorToProps, Anchors, useOnboardingTour } from "@/components/TourGuide";
 import DailyCalendar from "@/components/DailyCalendar";
 import { useDailyGameSelection } from "@/hooks/useDailyGameSelection";
 import { ProgressBar } from "@/components/ProgressBar";
+import Highlights from "@/components/Highlights";
+import HighlightPlayer from "@/components/HighlightPlayer";
+import type { Event } from "@/lib/tour/types";
 
 
 export default function Home() {
@@ -36,6 +39,15 @@ export default function Home() {
   const stepDurationMs = Math.max(1, Math.round(1000 / (playbackState.speed || 1)) * 0.7);
 
   const [focusedModelId, setFocusedModelId] = useState<string | null>(null);
+  const [activeHighlight, setActiveHighlight] = useState<Event | null>(null);
+
+  const mainTour = useOnboardingTour({
+    raceData,
+    playback: playbackState,
+    setPlayback: setPlaybackState,
+    setFocusedModelId,
+    game,
+  });
 
   const handleSelectedIdChange = useCallback((id: string | null, round: number) => {
     if (id !== null && id !== focusedModelId) {
@@ -54,7 +66,6 @@ export default function Home() {
     return raceData ? raceData.tokenScoresAt(id, round) : null;
   }, [raceData]);
 
-  const [startSignal, setStartSignal] = useState(0);
 
 
   // --- Calendar State & Logic ---
@@ -91,7 +102,7 @@ export default function Home() {
             <div className="mb-4 flex justify-center">
               <button
                 type="button"
-                onClick={() => setStartSignal((n) => n + 1)}
+                onClick={() => mainTour?.start()}
                 className="inline-flex items-center gap-2 px-4 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-shadow shadow-md"
               >
                 <span>✨</span>
@@ -106,13 +117,11 @@ export default function Home() {
                 {game.roundDisplay({ raceData, focusedModelId, round: safeRound })}
               </div>
 
-              <TourGuide
-                raceData={raceData}
-                playback={playbackState}
+              <HighlightPlayer
+                highlight={activeHighlight}
+                onDone={() => setActiveHighlight(null)}
                 setPlayback={setPlaybackState}
                 setFocusedModelId={setFocusedModelId}
-                startSignal={startSignal}
-                game={game}
               />
               <div className="flex gap-6 w-full">
                 <div className="flex-1">
@@ -138,11 +147,16 @@ export default function Home() {
                     />
                   </TourAnchor>
 
+                  <Highlights raceData={raceData} onHighlightSelect={setActiveHighlight} />
                 </div>
 
               </div>
 
-              <GameDisplayWithDetails game={leftRounds} className="mt-6 w-full" />
+              <GameDisplayWithDetails
+                game={leftRounds}
+                className="mt-6 w-full"
+                finalRank={focusedModelId ? raceData.finalRankFor(focusedModelId) : undefined}
+              />
 
               {/* Calendar / Archive */}
               <div className="self-stretch">

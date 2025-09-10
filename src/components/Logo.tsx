@@ -1,50 +1,36 @@
 "use client";
+import { modelLogoName, niceModelName } from "@/lib/model-metadata";
 
-import { useEffect, useMemo, useState } from "react";
-import { modelLogoPath, niceModelName } from "@/lib/model-metadata";
+import OpenAI from "@/components/logos/openai";
+import Anthropic from "@/components/logos/anthropic";
+import Google from "@/components/logos/gemini";
+import xAI from "@/components/logos/xai";
+import DeepSeek from "@/components/logos/deepseek";
+
+const LOGO_MAP: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+  openai: OpenAI,
+  anthropic: Anthropic,
+  gemini: Google,
+  xai: xAI,
+  deepseek: DeepSeek,
+};
 
 export interface LogoProps {
   model: string;
   size?: number;
   className?: string;
 }
-
 export function Logo({ model, size, className }: LogoProps) {
-  const src = modelLogoPath(model) ?? undefined;
-  const alt = `${niceModelName(model)} logo`;
+  const logoName = modelLogoName(model);
+  if (!logoName) return null;
 
-  const [ok, setOk] = useState<boolean>(false);
+  const LogoComponent = LOGO_MAP[logoName];
+  if (!LogoComponent) return null;
 
-  useEffect(() => {
-    if (!src) {
-      setOk(false);
-      return;
-    }
-    let mounted = true;
-    const img = new Image();
-    img.onload = () => mounted && setOk(true);
-    img.onerror = () => mounted && setOk(false);
-    img.src = src;
-    return () => {
-      mounted = false;
-    };
-  }, [src]);
-
-  if (!src || !ok) return null;
-
-
+  const alt = `${niceModelName(model)} logo ${size ?? '2rem'}`;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={alt}
-      style={{
-        width: size ?? '100%',
-        height: size ?? '100%',
-        objectFit: 'contain',
-        aspectRatio: '1 / 1'
-      }}
-      className={className}
-    />
+    <div style={{ width: size ?? '2rem', height: size ?? '2rem' }} className={className}>
+      <LogoComponent />
+    </div>
   );
 }

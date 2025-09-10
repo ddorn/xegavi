@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-import type { DailyMonth, DailyDay } from "@/lib/daily";
+import React, { useState } from "react";
+import type { DailyDay } from "@/lib/daily";
 import { buildMonthGridMonday, formatDateUTC, getTodayUTC, formatMonthKey, addMonthsUTC } from "@/lib/daily";
-import { modelLogoPath, deriveModelPresentation } from "@/lib/model-metadata";
+import { deriveModelPresentation } from "@/lib/model-metadata";
 import useMonth from "@/hooks/useMonth";
+import { Logo } from "./Logo";
 
 export type DailyCalendarProps = {
   selectedDateUTC: Date | null;
@@ -31,8 +32,7 @@ function Day({ date, entry, selectedDateUTC, onSelectDay, currentMonth, currentY
   const isSelected = selectedDateUTC && formatDateUTC(selectedDateUTC) === dateKey;
   const clickable = !!entry && !isFuture && inMonth;
 
-  const logoSrc = entry && !isFuture ? modelLogoPath(entry.bestModel) : null;
-  const { niceModel } = entry ? deriveModelPresentation(entry.bestModel) : { niceModel: "" } as any;
+  const { niceModel, logoName } = entry ? deriveModelPresentation(entry.bestModel) : { niceModel: "", logoName: null };
   const ariaLabel = entry ? `${dateKey}: ${entry.gameType}. Best: ${niceModel}. Score ${entry.bestScore}` : `${dateKey}`;
 
   return (
@@ -58,9 +58,8 @@ function Day({ date, entry, selectedDateUTC, onSelectDay, currentMonth, currentY
       </div>
       {!isFuture && (
         <div className="flex my-auto flex-col items-center justify-center gap-1 ">
-          {entry && logoSrc && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoSrc} alt="" className="h-6 w-6 md:h-7 md:w-7" />
+          {entry && logoName && (
+            <Logo model={entry.bestModel} className="h-6 w-6 md:h-7 md:w-7" />
           )}
           {entry && (
             <div className="text-[10px] md:text-sm font-bold text-center leading-tight">

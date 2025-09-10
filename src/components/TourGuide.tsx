@@ -1,26 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import Shepherd, { type Tour } from "shepherd.js";
+import { useMemo, useRef, useEffect } from "react";
 import "shepherd.js/dist/css/shepherd.css";
-import { offset } from "@floating-ui/dom";
 import type { RaceData } from "@/lib/barRace";
 import type { Playback, GameDisplay } from "@/lib/types";
 import type { StepTemplate } from "@/lib/tour/types";
 import { niceModelName } from "@/lib/model-metadata";
-import { allDetectors } from "@/lib/tour/detectors";
-import { DefaultPolicy, type EventPolicy } from "@/lib/tour/policy";
-import type { Event } from "@/lib/tour/types";
 import { eventToSteps, type StepsContext } from "@/lib/tour/eventToSteps";
-
-export type TourGuideProps = {
-  raceData: RaceData | null;
-  playback: Playback;
-  setPlayback: (next: Playback | ((prev: Playback) => Playback)) => void;
-  setFocusedModelId: (id: string | null) => void;
-  startSignal: number; // increment to (re)start the tour
-  game?: GameDisplay; // to fetch per-game intro
-};
+import { computeEvents, selectEvent } from "@/lib/highlights";
+import { useShepherdTour } from "@/hooks/useTour";
+import { offset } from "@floating-ui/dom";
+import type { Tour, TourOptions } from "shepherd.js";
 
 export const Anchors = {
   playButton: "play-button",
@@ -44,15 +34,28 @@ export function anchorToProps(anchor: string) {
   return { "data-tour": anchor };
 }
 
-export default function TourGuide({
-  raceData,
-  playback,
-  setPlayback,
-  setFocusedModelId,
-  startSignal,
-  game,
-}: TourGuideProps) {
-  const shepherdRef = useRef<Tour | null>(null);
+type TourControllerProps = {
+  raceData: RaceData | null;
+  playback: Playback;
+  setPlayback: (next: Playback | ((prev: Playback) => Playback)) => void;
+  setFocusedModelId: (id: string | null) => void;
+  game?: GameDisplay;
+};
+
+const tourOptions: TourOptions = {
+  useModalOverlay: true,
+  defaultStepOptions: {
+    cancelIcon: { enabled: false },
+    scrollTo: false,
+    canClickTarget: true,
+    modalOverlayOpeningPadding: 6,
+    floatingUIOptions: {
+      middleware: [offset({ mainAxis: 20, crossAxis: 0 })],
+    },
+  },
+};
+
+export function useOnboardingTour({ raceData, playback, setPlayback, setFocusedModelId, game }: TourControllerProps): Tour | null {
   const currentStepAdvanceRef = useRef<{ round: number; } | null>(null);
 
   function clearEmphasis() {
@@ -72,33 +75,11 @@ export default function TourGuide({
       .forEach((el) => el.classList.add("tour-emph"));
   }
 
-
   const allEvents = useMemo(() => (raceData ? computeEvents(raceData) : []), [raceData]);
   const selected = useMemo(() => selectEvent(allEvents), [allEvents]);
 
-  useEffect(() => {
-    if (!raceData || shepherdRef.current) return;
-
-    const tour = new Shepherd.Tour({
-      useModalOverlay: true,
-      defaultStepOptions: {
-        cancelIcon: { enabled: false },
-        scrollTo: false,
-        canClickTarget: true,
-        modalOverlayOpeningPadding: 6,
-        floatingUIOptions: {
-          middleware: [
-            offset({mainAxis: 20, crossAxis: 0})
-          ]
-        }
-      },
-    });
-
-    shepherdRef.current = tour;
-
-    const previousButton = { text: "Prev", action: tour.back };
-    const nextButton = { text: "Next", action: tour.next };
-    const cancelButton = { text: "Esc", action: tour.cancel, classes: "shepherd-button-cancel" };
+  const steps = useMemo<StepTemplate[]>(() => {
+    if (!raceData) return [];
 
     // 1) Per-game intro steps
     const introSteps: StepTemplate[] = game?.tourIntro?.steps?.map((s, idx) => ({
@@ -182,55 +163,43 @@ export default function TourGuide({
       },
     ];
 
-    // Materialize Shepherd steps
-    for (const s of allSteps) {
-      tour.addStep({
-        id: s.id,
-        text: s.text,
-        attachTo: s.attachTo,
-        buttons: [cancelButton, previousButton, nextButton],
-        advanceOn: s.advanceOn && 'selector' in s.advanceOn ? s.advanceOn : undefined,
-        when: {
-          show: () => {
-            s.onShow?.forEach(fn => fn());
-            const anchor = document.querySelector(s.attachTo.element);
-            scrollIntoViewNicely(anchor);
-
-            // Set up round-based auto-advance if needed
-            if (s.advanceOn && 'round' in s.advanceOn) {
-              currentStepAdvanceRef.current = s.advanceOn;
-            } else {
-              currentStepAdvanceRef.current = null;
-            }
-          },
-          hide: () => {
-            s.onHide?.forEach(fn => fn());
+    // This is a bit of a hack to add the auto-advance logic to the steps
+    // before they are passed to the useTour hook.
+    return allSteps.map(s => ({
+      ...s,
+      onShow: [
+        ...(s.onShow ?? []),
+        () => {
+          if (s.advanceOn && 'round' in s.advanceOn) {
+            currentStepAdvanceRef.current = s.advanceOn;
+          } else {
             currentStepAdvanceRef.current = null;
-          },
-        },
-      });
-    }
+          }
+        }
+      ],
+      onHide: [
+        ...(s.onHide ?? []),
+        () => {
+          currentStepAdvanceRef.current = null;
+        }
+      ]
+    }));
   }, [raceData, setPlayback, setFocusedModelId, selected, game]);
 
-  useEffect(() => {
-    if (!shepherdRef.current) return;
-    if (startSignal > 0) {
-      shepherdRef.current.start();
-    }
-  }, [startSignal]);
+  const tour = useShepherdTour(tourOptions, steps);
 
   // Auto-advance when target round is reached
   useEffect(() => {
-    if (!shepherdRef.current || !currentStepAdvanceRef.current) return;
+    if (!tour || !currentStepAdvanceRef.current) return;
 
     const targetRound = currentStepAdvanceRef.current.round;
     if (playback.round >= targetRound) {
-      shepherdRef.current.next();
+      tour.next();
       currentStepAdvanceRef.current = null;
     }
-  }, [playback.round]);
+  }, [playback.round, tour]);
 
-  return null;
+  return tour;
 }
 
 function scrollIntoViewNicely(el: Element | null) {
@@ -239,27 +208,4 @@ function scrollIntoViewNicely(el: Element | null) {
   const pad = 80; // px
   const top = window.scrollY + rect.top - Math.max(0, (window.innerHeight - rect.height) / 2) + (rect.height < 200 ? -pad : 0);
   window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-}
-
-
-export function computeEvents(race: RaceData): Event[] {
-  const detectors = allDetectors();
-  return detectors.flatMap((fn) => fn(race));
-}
-
-export function selectEvent(events: Event[], policy: EventPolicy = DefaultPolicy): Event | null {
-  const filtered = events.filter((e) => (policy.mins[e.type] ?? -Infinity) < e.magnitudeRaw);
-  if (filtered.length === 0) return null;
-  function scoreOf(e: Event): number {
-    return (policy.weights[e.type] ?? 0) * e.magnitudeNorm;
-  }
-  // Deterministic sort: score desc -> magnitudeRaw desc -> earliest round -> modelId asc -> type lex
-  const sorted = filtered.slice().sort((a, b) =>
-    scoreOf(b) - scoreOf(a) ||
-    b.magnitudeRaw - a.magnitudeRaw ||
-    a.round - b.round ||
-    a.modelId.localeCompare(b.modelId) ||
-    a.type.localeCompare(b.type)
-  );
-  return sorted[0] ?? null;
 }

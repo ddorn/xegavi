@@ -8,6 +8,8 @@ import { Anchors, anchorToProps } from "./TourGuide";
 export interface BarProps {
   item: BarRaceItem;
   widthPct: number; // 0..100
+  xZeroPct?: number;
+  flipped?: boolean;
   barHeight: number;
   logo?: React.ReactNode;
   onClick?: () => void;
@@ -23,26 +25,35 @@ export interface BarProps {
   moveAlignment?: "left" | "right";
 }
 
-export function Bar({ item, widthPct, barHeight, logo, onClick, transitionDurationSec = 1, textColorOverride, solidBackground = true, slots, displayDescription = false, moveAlignment = "left" }: BarProps) {
+/**
+ * Renders a single bar within the BarRace.
+ * The colored bar rectangle is positioned absolutely with its base at `xZeroPct` and width `widthPct`.
+ * `flipped` reverses the internal layout (score vs. name) for negative values.
+ */
+export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, logo, onClick, transitionDurationSec = 1, textColorOverride, solidBackground = true, slots, displayDescription = false, moveAlignment = "left" }: BarProps) {
   const computedTextColor = textColorOverride ?? pickTextColor(item.color);
-  const width = `${Math.max(0, Math.min(100, widthPct)).toFixed(4)}%`;
+  const safeWidthPct = Math.max(0, Math.min(100, widthPct));
+  const left = flipped ? xZeroPct - safeWidthPct : xZeroPct;
+  const width = `${safeWidthPct.toFixed(4)}%`;
+  const leftPos = `${left.toFixed(4)}%`;
+
   return (
     <div
       className="flex items-center gap-2 w-full"
       style={{ height: barHeight }}
     >
         {slots?.prefix}
-      <div style={{ width: barHeight, height: barHeight }} className="shrink-0 flex items-center justify-center dark:bg-white rounded-lg">
+      <div style={{ width: barHeight, height: barHeight }} className="shrink-0 flex items-center justify-center">
         {logo}
       </div>
-      <div className="grow min-w-0 flex" style={{ height: barHeight }}>
+      <div className="grow min-w-0 flex relative" style={{ height: barHeight }}>
         <motion.div
-          initial={{ width, opacity: 0 }}
-          animate={{ width, opacity: 1 }}
+          initial={{ width: 0, left: `${xZeroPct.toFixed(4)}%`, opacity: 0 }}
+          animate={{ width, left: leftPos, opacity: 1 }}
           key={`${item.id}-inner`}
           transition={{ duration: transitionDurationSec}}
           style={solidBackground ? { backgroundColor: item.color, height: barHeight } : { height: barHeight }}
-          className={`relative overflow-hidden flex justify-between items-center border border-transparent`}
+          className={`absolute overflow-hidden flex justify-between items-center border border-transparent ${flipped ? "flex-row-reverse" : ""}`}
           onClick={onClick}
           {...anchorToProps(Anchors.barForModel(item.id))}
         >

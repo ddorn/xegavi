@@ -75,6 +75,25 @@ export class RaceData {
     return this.augmented.map((frame) => frame[id]!).filter(Boolean);
   }
 
+  /**
+   * Calculate the final rank of a model based on its best score at the end of the game.
+   * Returns 1-based rank (1 = first place, 2 = second place, etc.)
+   */
+  finalRankFor(modelId: string): number {
+    if (this.augmented.length === 0) return 1;
+
+    const finalFrame = this.augmented[this.augmented.length - 1];
+    const sorted = Object.values(finalFrame).sort((a, b) => b.bestScore - a.bestScore);
+
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].model === modelId) {
+        return i + 1; // 1-based ranking
+      }
+    }
+
+    return sorted.length; // fallback if model not found
+  }
+
 
   /** Builds frames suitable for the BarRace */
   buildFrames(useBestMove: boolean = true): BarRaceFrame[] {

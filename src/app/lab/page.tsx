@@ -5,7 +5,7 @@ import { useDataset } from "@/hooks/useDataset";
 import { ModelHistoryChart } from "@/components/ModelHistoryChart";
 import { EventsDisplay } from "@/components/EventsDisplay";
 import { RoundModelWithBest } from "@/lib/barRace";
-import { computeEvents, selectEvent } from "@/components/TourGuide";
+import { computeEvents, selectEvent } from "@/lib/highlights";
 import type { Event } from "@/lib/tour/types";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import { BarRace } from "@/components/BarRace";
@@ -133,7 +133,10 @@ export default function LabPage() {
 
               <section className="border rounded-md p-3">
                 <h2 className="font-semibold mb-2">GameDisplayWithDetails</h2>
-                <GameDisplayWithDetails game={rounds} />
+                <GameDisplayWithDetails
+                  game={rounds}
+                  finalRank={selectedModelId ? raceData.finalRankFor(selectedModelId) : undefined}
+                />
               </section>
 
               <section className="border rounded-md p-3">

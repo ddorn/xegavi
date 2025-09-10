@@ -64,15 +64,15 @@ export const COMPANY_COLORS: Record<string, string> = {
 };
 
 // Map company to local logo in public/companieslogo
-const COMPANY_LOGOS: Record<string, string | null> = {
-  OpenAI: "/companieslogo/openai.svg",
-  Anthropic: "/companieslogo/anthropic.svg",
-  Google: "/companieslogo/gemini.svg", // using gemini icon for Google
-  xAI: "/companieslogo/xai.svg",
+const COMPANY_LOGO_NAMES: Record<string, string | null> = {
+  OpenAI: "openai",
+  Anthropic: "anthropic",
+  Google: "gemini", // using gemini icon for Google
+  xAI: "xai",
   Meta: null,
   Mistral: null,
   Alibaba: null,
-  DeepSeek: "/companieslogo/deepseek.svg",
+  DeepSeek: "deepseek",
   Reka: null,
   Cohere: null,
   Microsoft: null,
@@ -84,15 +84,15 @@ export function modelColor(model: string): string {
   return COMPANY_COLORS[company] ?? COMPANY_COLORS["Unknown"];
 }
 
-export function modelLogoPath(model: string): string | null {
+export function modelLogoName(model: string): string | null {
   const company = inferCompany(model);
-  return COMPANY_LOGOS[company] ?? null;
+  return COMPANY_LOGO_NAMES[company] ?? null;
 }
 
-export function deriveModelPresentation(model: string): { niceModel: string; company: string; color: string; logoSrc: string | null } {
+export function deriveModelPresentation(model: string): { niceModel: string; company: string; color: string; logoName: string | null } {
   const company = inferCompany(model);
   const niceModel = niceModelName(model);
   const color = modelColor(model);
-  const logoSrc = modelLogoPath(model);
-  return { niceModel, company, color, logoSrc };
+  const logoName = modelLogoName(model);
+  return { niceModel, company, color, logoName };
 }

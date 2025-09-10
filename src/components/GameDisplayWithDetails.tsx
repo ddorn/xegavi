@@ -4,20 +4,21 @@ import { RoundModelWithBest } from "@/lib/barRace";
 import React from "react";
 import { Logo } from "@/components/Logo";
 import { TokenScoreHeatmap } from "@/components/TokenScoreHeatmap";
+import { numberToEnglishOrdinal } from "@/lib/utils";
 
 export interface GameDisplayWithDetailsProps {
   game: RoundModelWithBest[];
   subtitle?: string;
   className?: string;
+  finalRank?: number;
 }
 
 const defaultSubtitle = "Click another model in the leaderboard to see its breakdown";
 
-export function GameDisplayWithDetails({ game, subtitle = defaultSubtitle, className }: GameDisplayWithDetailsProps) {
+export function GameDisplayWithDetails({ game, subtitle = defaultSubtitle, className, finalRank }: GameDisplayWithDetailsProps) {
   if (!game || game.length === 0) return null;
 
   const last = game[game.length - 1];
-  const tries = (last.bestRoundIndex ?? 0) + 1; // 1-based count
   const bestScore = last.bestScore ?? last.score;
 
   const formatScore = (n: number) => {
@@ -32,9 +33,9 @@ export function GameDisplayWithDetails({ game, subtitle = defaultSubtitle, class
           <Logo model={last.model} />
         </div>
         <div className="leading-tight">
-          <h2 className="font-black text-2xl sm:text-3xl">
-            {last.niceModel} gets to <span className="tabular-nums">{formatScore(bestScore)}</span> points after {" "}
-            <span className="tabular-nums">{tries}</span> attempts
+          <h2 className="font-black text-2xl sm:text-3xl tabular-nums">
+            {`${last.niceModel} gets to ${formatScore(bestScore)}`}
+            {finalRank ? ` and finishes ${numberToEnglishOrdinal(finalRank)}` : ""}
           </h2>
           <p className="text-sm opacity-80">{subtitle}</p>
         </div>
