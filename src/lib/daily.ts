@@ -57,12 +57,12 @@ export function addMonthsUTC(date: Date, delta: number): Date {
 }
 
 // Build a Monday-start grid for the month
-export function buildMonthGridMonday(date: Date): Array<Array<Date | null>> {
+export function buildMonthGridMonday(date: Date): Array<Array<Date>> {
   const first = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
   const last = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0));
   const firstWeekdayMon0 = (first.getUTCDay() + 6) % 7; // 0 = Monday
 
-  const grid: Array<Array<Date | null>> = [];
+  const grid: Array<Array<Date>> = [];
   let current = new Date(first);
   current.setUTCDate(current.getUTCDate() - firstWeekdayMon0);
 
@@ -72,7 +72,7 @@ export function buildMonthGridMonday(date: Date): Array<Array<Date | null>> {
   const weeksNeeded = Math.ceil(totalDays / 7);
 
   for (let w = 0; w < weeksNeeded; w++) {
-    const week: Array<Date | null> = [];
+    const week: Array<Date> = [];
     for (let i = 0; i < 7; i++) {
       week.push(new Date(current));
       current.setUTCDate(current.getUTCDate() + 1);

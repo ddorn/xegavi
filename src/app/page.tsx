@@ -60,7 +60,7 @@ export default function Home() {
   const monthLabel = selectedDateUTC ? new Intl.DateTimeFormat(undefined, { year: "numeric", month: "long", timeZone: "UTC" }).format(selectedDateUTC) : "";
 
   return (
-    <div className="min-h-screen p-6 sm:p-10">
+    <div className="min-h-screen px-2 xs:px-6 sm:p-10">
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -142,6 +142,18 @@ export default function Home() {
 
               <GameDisplayWithDetails game={leftRounds} className="mt-6 w-full" />
 
+              {/* Calendar / Archive */}
+              <div className="self-stretch">
+                <div className="text-lg font-black mb text-blue-600">Archive</div>
+                <h2 className="text-2xl font-black mb-2">Winners of {monthLabel}</h2>
+                <DailyCalendar
+                  selectedDateUTC={selectedDateUTC}
+                  onSelectDay={selectDate}
+                  className="max-w-2xl"
+                />
+              </div>
+
+
               <div className="my-12 self-center text-center">
                 <h2 className="text-xl font-black mb-2">What&apos;s next?</h2>
                 <div className="flex gap-2">
@@ -149,19 +161,10 @@ export default function Home() {
                   <a href="https://www.xentlabs.ai/blog/xent-benchmark" target="_blank" rel="noopener noreferrer" className="inverted-button">Read more on our blog</a>
                 </div>
               </div>
-
             </div>
+
           </ColorScaleProvider>
         )}
-
-        {/* Calendar / Archive */}
-        <div className="mt-12 border rounded-md p-3">
-          <div className="font-semibold text-sm mb-2">Winners of {monthLabel}</div>
-          <DailyCalendar
-            selectedDateUTC={selectedDateUTC}
-            onSelectDay={selectDate}
-          />
-        </div>
       </div>
     </div>
   );

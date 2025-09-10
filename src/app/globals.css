@@ -2,11 +2,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 .button {
-    @apply rounded-md border px-3 py-1 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800;
+    @apply rounded-md border px-3 py-1 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
 }
 
 .inverted-button {
-    @apply rounded-md border px-3 py-1 text-sm bg-black text-white border-white ring-1 ring-black hover:bg-neutral-700 dark:bg-white dark:text-black dark:border-black dark:ring-white dark:hover:bg-neutral-200;
+    @apply rounded-md border px-3 py-1 text-sm bg-black text-white border-white ring-1 ring-black hover:bg-neutral-700 dark:bg-white dark:text-black dark:border-black dark:ring-white dark:hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
 }
 
 .highlight {
