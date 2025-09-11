@@ -17,12 +17,19 @@ function HighlightCard({ event, onClick }: { event: Event; onClick: () => void; 
   const color = modelColor(event.modelId);
   return (
     <div
-      onClick={onClick}
-      className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 text-center shadow-sm transition-all hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+      className="flex flex-col justify-between items-center rounded-lg border border-gray-200 bg-white p-4 text-center shadow-sm transition-transform duration-200 hover:scale-105 dark:border-gray-700 dark:bg-gray-800"
       style={{ borderTop: `4px solid ${color}`, background: `${color}30` }}
     >
-      <p className="font-semibold text-gray-800 dark:text-gray-200">{text}</p>
-      <p className="text-sm text-gray-500 dark:text-gray-400">in round {event.round + 1}</p>
+      <div>
+        <p className="font-semibold text-gray-800 dark:text-gray-200">{text}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">in round {event.round + 1}</p>
+      </div>
+      <button
+        onClick={onClick}
+        className="button mt-2"
+      >
+        Watch Replay
+      </button>
     </div>
   );
 }
