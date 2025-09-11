@@ -5,7 +5,7 @@ import { useDataset } from "@/hooks/useDataset";
 import { ModelHistoryChart } from "@/components/ModelHistoryChart";
 import { EventsDisplay } from "@/components/EventsDisplay";
 import { RoundModelWithBest } from "@/lib/barRace";
-import { computeEvents, selectEvent } from "@/lib/highlights";
+import { computeEvents } from "@/lib/highlights";
 import type { Event } from "@/lib/tour/types";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import { BarRace } from "@/components/BarRace";
@@ -15,7 +15,7 @@ import DailyCalendar from "@/components/DailyCalendar";
 import { useDailyGameSelection } from "@/hooks/useDailyGameSelection";
 
 export default function LabPage() {
-  const { selectedGameUrl, selectedDateUTC, selectDate } = useDailyGameSelection("2025-09-05");
+  const { selectedDateUTC, selectDate } = useDailyGameSelection("2025-09-05");
   const [datasetUrl, setDatasetUrl] = useState<string | null>(null);
   const { game, raceData, error } = useDataset(datasetUrl);
 
@@ -56,7 +56,6 @@ export default function LabPage() {
 
   // Events detection and selection
   const allEvents = useMemo(() => (raceData ? computeEvents(raceData) : []), [raceData]);
-  const selectedEvent = useMemo(() => selectEvent(allEvents), [allEvents]);
   const [selectedEventForDisplay, setSelectedEventForDisplay] = useState<Event | null>(null);
 
   // Handle event selection - update model and round

@@ -149,7 +149,7 @@ export class RaceData {
 
         bestIdxByModel[model] = bestIdx;
 
-        const { niceModel, company, color, logoSrc } = deriveModelPresentation(model);
+        const { niceModel, company, color, logoName } = deriveModelPresentation(model);
 
         frame[model] = {
           ...current,
@@ -160,7 +160,7 @@ export class RaceData {
           niceModel,
           company,
           color,
-          logoSrc,
+          logoSrc: logoName,
         };
       }
 

@@ -56,7 +56,9 @@ export function Measure({ elements, children }: MeasureProps) {
       >
         {Children.map(elements, (element, index) => (
           <div
-            ref={(el) => (refs.current[index] = el)}
+            ref={(el) => {
+              refs.current[index] = el;
+            }}
             style={{ display: "inline-block" }}
           >
             {element}

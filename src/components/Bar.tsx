@@ -28,7 +28,7 @@ interface Layout {
 }
 
 function distributeContent(componentWidths: ComponentWidths, segmentWidths: SegmentWidths, flipped: boolean): Layout {
-    const { name, description, score } = componentWidths;
+    const { name, score } = componentWidths;
     const { left, inside, right } = segmentWidths;
 
     let outsideSize = flipped ? left : right;
@@ -64,6 +64,7 @@ function distributeContent(componentWidths: ComponentWidths, segmentWidths: Segm
         outsideSize -= name;
     }
 
+    // 3. Description is always inside, we don't even check its size
     insideSegment.push("description");
 
     // Sort elements inside in this order: name, description, score

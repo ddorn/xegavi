@@ -161,7 +161,7 @@ export function useTourManager({ raceData, playback, setPlayback, setFocusedMode
         if (tour) {
             tour.start();
         }
-    }, [createTour, setPlayback, setFocusedModelId, clearEmphasis, emphasizeTopRanks]);
+    }, [createTour, setPlayback, setFocusedModelId]);
 
     const startOnboardingTour = useCallback(() => {
         if (!raceData || !game) return;
@@ -172,7 +172,7 @@ export function useTourManager({ raceData, playback, setPlayback, setFocusedMode
         if (tour) {
             tour.start();
         }
-    }, [raceData, game, setPlayback, setFocusedModelId, createTour, clearEmphasis, emphasizeTopRanks]);
+    }, [raceData, game, setPlayback, setFocusedModelId, createTour]);
 
     return { startOnboardingTour, startHighlightTour };
 }

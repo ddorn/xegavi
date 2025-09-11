@@ -107,7 +107,6 @@ export function formatHighlight(event: Event): string {
         case "max_token_negative":
             return `A single token change cost ${modelName} a lot.`;
         default:
-            const unknownEvent: never = event;
-            return `An interesting event happened for ${modelName} at round ${unknownEvent.round}.`;
+          throw new Error(`Unknown event type: ${event}`);
     }
 }

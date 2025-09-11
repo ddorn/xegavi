@@ -5,7 +5,6 @@ import { BarRace } from "@/components/BarRace";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BarRaceControls, usePlayback } from "@/components/BarRaceControls";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
-import type { TokenScoresList } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
 import { TourAnchor, Anchors } from "@/components/TourAnchor";
@@ -31,7 +30,7 @@ export default function Home() {
   useEffect(() => {
     setPlaybackState((s) => ({ ...s, round: 0 }));
     setFocusedModelId(raceData?.finalists()[0] ?? null);
-  }, [raceData]);
+  }, [raceData, setPlaybackState]);
 
   const stepDurationMs = Math.max(1, Math.round(1000 / (playbackState.speed || 1)) * 0.7);
 
@@ -45,11 +44,11 @@ export default function Home() {
     game: game ?? undefined,
   });
 
-  const handleSelectedIdChange = useCallback((id: string | null, round: number) => {
+  const handleSelectedIdChange = useCallback((id: string | null) => {
     if (id !== null && id !== focusedModelId) {
       setFocusedModelId(id);
     }
-  }, []);
+  }, [focusedModelId]);
 
   const safeRound = useMemo(() => {
     const maxIdx = Math.max(0, (raceData?.augmented.length ?? 0) - 1);

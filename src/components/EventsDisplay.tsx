@@ -103,7 +103,7 @@ export function EventsDisplay({ events, selectedEvent, onEventSelect, onModelSel
 
       // Take only the first N events per type
       const limitedEvents: Event[] = [];
-      for (const [_type, typeEvents] of eventsByType) {
+      for (const [, typeEvents] of eventsByType) {
         limitedEvents.push(...typeEvents.slice(0, eventsPerTypeLimit));
       }
 

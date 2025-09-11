@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
 export function ThemeToggle() {
 	const { theme, setTheme } = useTheme();
@@ -20,7 +21,7 @@ export function ThemeToggle() {
 			aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
 			title={isDark ? "Light" : "Dark"}
 		>
-			<img src={isDark ? "/sun.svg" : "/moon.svg"} alt="" className="h-5 w-5 dark:invert" />
+			<Image src={isDark ? "/sun.svg" : "/moon.svg"} alt="" className="h-5 w-5 dark:invert" width={20} height={20} />
 		</button>
 	);
 }
