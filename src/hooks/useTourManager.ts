@@ -74,7 +74,7 @@ function buildOnboardingSteps(
 
     const steps: StepTemplate[] = [
         { id: "intro", attachTo: { element: anchorSelector(Anchors.todaysGame), on: "bottom" }, text: `The Xent Labs Benchmark is composed of many games. Today's game is <i>${game.name}</i>.` },
-        ...(game.tourIntro?.steps ?? []),
+        ...(game.tourIntro ?? []),
         { id: "first-move", attachTo: { element: anchorSelector(Anchors.explainerMove), on: "top" }, text: `This is <b>${niceModelName(modelId)}</b>'s first's attempt. Is it good?`, onShow: [() => setFocusedModelId(modelId), () => setPlayback(p => ({ ...p, isPlaying: false, round: 0 }))] },
         { id: "tokens-positive", attachTo: { element: anchorSelector(Anchors.explainerTokens), on: "top" }, text: "Well, some tokens are made more likely by its move! They're shown in green.", onShow: [clearEmphasis, () => emphasizeTopRanks(true, 5)], onHide: [clearEmphasis] },
         { id: "tokens-negative", attachTo: { element: anchorSelector(Anchors.explainerTokens), on: "bottom" }, text: "But other tokens are hurt by the move as well, and the model is more surprised to see them.", onShow: [clearEmphasis, () => emphasizeTopRanks(false, 5)], onHide: [clearEmphasis] },

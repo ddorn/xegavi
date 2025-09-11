@@ -9,13 +9,12 @@ import { motion, AnimatePresence } from "motion/react";
 
 export interface ModelHistoryChartProps {
   rounds: RoundModelWithBest[];
-  roundIndex: number;
   height?: number;
   maxLabels?: number; // number of lanes for improvement labels
   onRoundChange?: (index: number) => void;
 }
 
-export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels = 6, onRoundChange }: ModelHistoryChartProps) {
+export function ModelHistoryChart({ rounds, height = 140, maxLabels = 6, onRoundChange }: ModelHistoryChartProps) {
   const isDark = useTheme().theme === "dark";
 
   const color = rounds[0]?.color ?? "#3b82f6";
@@ -196,7 +195,7 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
             </ReferenceLine>
 
             {/* Improvement markers (exclude global best) */}
-            {labels.filter(ev => ev.round !== globalBestIndex).map((ev, i) => (
+            {labels.filter(ev => ev.round !== globalBestIndex).map((ev) => (
               <ReferenceLine key={displayImprovements.some(d => d.round === ev.round) ? `impr-${ev.round}` : "impr-current"} x={ev.round} stroke="currentColor" opacity={0.28} />
             ))}
           </ComposedChart>
@@ -222,7 +221,7 @@ export function ModelHistoryChart({ rounds, roundIndex, height = 140, maxLabels 
           {/* Text rows (zIndex 1) */}
           <div className="grid grid-cols-1" style={{ gridAutoRows: `${LABEL_ROW_HEIGHT}px`, rowGap: ROW_GAP, position: "relative", zIndex: 1 }}>
             <AnimatePresence initial={false}>
-              {labels.map((ev, idx) => {
+              {labels.map((ev) => {
                 const x = xToPx(ev.round);
                 const rightSide = x > (MARGINS.left + innerWidth / 2);
                 const availableLeft = x - MARGINS.left - 16;

@@ -5,6 +5,44 @@ import type { Event } from "@/lib/tour/types";
 import { niceModelName } from "@/lib/model-metadata";
 import { DefaultPolicy } from "@/lib/tour/policy";
 
+const typeToLabel = {
+  "first_to_top": "First to Top",
+  "lead_change": "Lead Change",
+  "big_jump": "Big Jump",
+  "max_token_positive": "Max Token +",
+  "max_token_negative": "Max Token -",
+};
+
+const typeToColor = {
+  "first_to_top": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  "lead_change": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  "big_jump": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  "max_token_positive": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  "max_token_negative": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+};
+
+function getEventDescription(event: Event): string {
+  switch (event.type) {
+    case "first_to_top":
+      return `${niceModelName(event.modelId)} reaches #1 from rank ${event.details.startRank}`;
+    case "lead_change":
+      return `${niceModelName(event.modelId)} takes the lead from ${niceModelName(event.details.previousLeaderId as string)
+        }`;
+    case "big_jump":
+      return `${niceModelName(event.modelId)} improves by ${event.details.delta?.toFixed(1)} points`;
+    case "max_token_positive":
+      return `${niceModelName(event.modelId)
+        } has strongest positive token impact (+${event.magnitudeRaw.toFixed(2)})`;
+    case "max_token_negative":
+      return `${niceModelName(event.modelId)
+        } has strongest negative token impact (${event.magnitudeRaw.toFixed(2)})`;
+  }
+};
+
+const getEventScore = (event: Event) => {
+  return (DefaultPolicy.weights[event.type] ?? 0) * event.magnitudeNorm;
+};
+
 type EventsDisplayProps = {
   events: Event[];
   selectedEvent: Event | null;
@@ -35,23 +73,20 @@ export function EventsDisplay({ events, selectedEvent, onEventSelect, onModelSel
 
     // Apply filters
     if (selectedModelFilter) {
-      filtered = filtered.filter(e => e.modelId === selectedModelFilter);
+      filtered = filtered.filter((e) => e.modelId === selectedModelFilter);
     }
     if (selectedTypeFilter) {
-      filtered = filtered.filter(e => e.type === selectedTypeFilter);
-    }
-
-    function scoreOf(e: Event): number {
-      return (DefaultPolicy.weights[e.type] ?? 0) * e.magnitudeNorm;
+      filtered = filtered.filter((e) => e.type === selectedTypeFilter);
     }
 
     // Sort first
-    const sorted = filtered.slice().sort((a, b) =>
-      scoreOf(b) - scoreOf(a) ||
-      b.magnitudeRaw - a.magnitudeRaw ||
-      a.round - b.round ||
-      a.modelId.localeCompare(b.modelId) ||
-      a.type.localeCompare(b.type)
+    const sorted = filtered.slice().sort(
+      (a, b) =>
+        getEventScore(b) - getEventScore(a) ||
+        b.magnitudeRaw - a.magnitudeRaw ||
+        a.round - b.round ||
+        a.modelId.localeCompare(b.modelId) ||
+        a.type.localeCompare(b.type),
     );
 
     // Apply per-type limit if specified
@@ -68,65 +103,23 @@ export function EventsDisplay({ events, selectedEvent, onEventSelect, onModelSel
 
       // Take only the first N events per type
       const limitedEvents: Event[] = [];
-      for (const [type, typeEvents] of eventsByType) {
+      for (const [_type, typeEvents] of eventsByType) {
         limitedEvents.push(...typeEvents.slice(0, eventsPerTypeLimit));
       }
 
       // Re-sort the limited events
-      return limitedEvents.sort((a, b) =>
-        scoreOf(b) - scoreOf(a) ||
-        b.magnitudeRaw - a.magnitudeRaw ||
-        a.round - b.round ||
-        a.modelId.localeCompare(b.modelId) ||
-        a.type.localeCompare(b.type)
+      return limitedEvents.sort(
+        (a, b) =>
+          getEventScore(b) - getEventScore(a) ||
+          b.magnitudeRaw - a.magnitudeRaw ||
+          a.round - b.round ||
+          a.modelId.localeCompare(b.modelId) ||
+          a.type.localeCompare(b.type),
       );
     }
 
     return sorted;
   }, [events, selectedModelFilter, selectedTypeFilter, eventsPerTypeLimit]);
-
-  const getEventTypeLabel = (type: Event["type"]) => {
-    switch (type) {
-      case "first_to_top": return "First to Top";
-      case "lead_change": return "Lead Change";
-      case "big_jump": return "Big Jump";
-      case "max_token_positive": return "Max Token +";
-      case "max_token_negative": return "Max Token -";
-      default: return type;
-    }
-  };
-
-  const getEventTypeColor = (type: Event["type"]) => {
-    switch (type) {
-      case "first_to_top": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "lead_change": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
-      case "big_jump": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "max_token_positive": return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200";
-      case "max_token_negative": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-    }
-  };
-
-  const getEventDescription = (event: Event) => {
-    switch (event.type) {
-      case "first_to_top":
-        return `${niceModelName(event.modelId)} reaches #1 from rank ${event.details.startRank}`;
-      case "lead_change":
-        return `${niceModelName(event.modelId)} takes the lead from ${niceModelName(event.details.previousLeaderId as string)}`;
-      case "big_jump":
-        return `${niceModelName(event.modelId)} improves by ${event.details.delta?.toFixed(1)} points`;
-      case "max_token_positive":
-        return `${niceModelName(event.modelId)} has strongest positive token impact (+${event.magnitudeRaw.toFixed(2)})`;
-      case "max_token_negative":
-        return `${niceModelName(event.modelId)} has strongest negative token impact (${event.magnitudeRaw.toFixed(2)})`;
-      default:
-        return `${niceModelName(event.modelId)} - ${event.type}`;
-    }
-  };
-
-  const getEventScore = (event: Event) => {
-    return (DefaultPolicy.weights[event.type] ?? 0) * event.magnitudeNorm;
-  };
 
   if (sortedEvents.length === 0) {
     return (
@@ -170,7 +163,7 @@ export function EventsDisplay({ events, selectedEvent, onEventSelect, onModelSel
           >
             <option value="">All Types</option>
             {availableTypes.map((type) => (
-              <option key={type} value={type}>{getEventTypeLabel(type)}</option>
+              <option key={type} value={type}>{typeToLabel[type]}</option>
             ))}
           </select>
         </div>
@@ -232,8 +225,8 @@ export function EventsDisplay({ events, selectedEvent, onEventSelect, onModelSel
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-2 py-1 text-xs font-medium rounded ${getEventTypeColor(event.type)}`}>
-                      {getEventTypeLabel(event.type)}
+                    <span className={`px-2 py-1 text-xs font-medium rounded ${typeToColor[event.type]}`}>
+                      {typeToLabel[event.type]}
                     </span>
                     <span className="text-xs opacity-60">Round {event.round + 1}</span>
                   </div>
@@ -259,7 +252,7 @@ export function EventsDisplay({ events, selectedEvent, onEventSelect, onModelSel
             Selected Event Details
           </div>
           <div className="text-xs space-y-1 text-blue-800 dark:text-blue-200">
-            <div><strong>Type:</strong> {getEventTypeLabel(selectedEvent.type)}</div>
+            <div><strong>Type:</strong> {typeToLabel[selectedEvent.type]}</div>
             <div><strong>Model:</strong> {niceModelName(selectedEvent.modelId)}</div>
             <div><strong>Round:</strong> {selectedEvent.round + 1}</div>
             <div><strong>Magnitude Raw:</strong> {selectedEvent.magnitudeRaw.toFixed(3)}</div>

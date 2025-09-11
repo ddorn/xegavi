@@ -5,7 +5,6 @@ import { allDetectors } from "./tour/detectors";
 import type { EventPolicy } from "./tour/policy";
 import { DefaultPolicy } from "./tour/policy";
 import { niceModelName } from "./model-metadata";
-import { numberToEnglishOrdinal } from "./utils";
 
 
 /**

@@ -6,7 +6,6 @@ import { anchorSelector, Anchors } from "../TourAnchor";
 
 function ContrastRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayProps) {
     const explainerRound = focusedModelId ? raceData.roundsFor(focusedModelId)[round] : null;
-    const bg = explainerRound?.color ?? "#888";
 
     if (!explainerRound) return <div>No data</div>;
 
@@ -61,12 +60,11 @@ export const Contrast: GameDisplay = {
     const ds = parseContrastBenchmarkToDataset(raw);
       return new RaceData(ds);
   },
-    tourIntro: {
-        steps: [
-            {
-                text: "In Contrast, a sentence should make the Positive text likely and the Negative text unlikely.",
-                attachTo: { element: anchorSelector(Anchors.gameRules), on: "bottom" },
-            },
-        ],
-    },
+    tourIntro: [
+        {
+            id: "contrast-intro-1",
+            text: "In Contrast, a sentence should make the Positive text likely and the Negative text unlikely.",
+            attachTo: { element: anchorSelector(Anchors.gameRules), on: "bottom" },
+        },
+    ],
 };

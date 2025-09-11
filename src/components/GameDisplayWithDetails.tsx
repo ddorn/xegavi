@@ -41,7 +41,7 @@ export function GameDisplayWithDetails({ game, subtitle = defaultSubtitle, class
       </div>
 
       <div className="mt-6">
-        <ModelHistoryChart rounds={game} roundIndex={game.length - 1} />
+        <ModelHistoryChart rounds={game} />
       </div>
 
       <div className="mt-6">

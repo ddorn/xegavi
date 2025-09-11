@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type React from "react";
 import type { RaceData } from "@/lib/barRace";
+import type { StepTemplate } from "./tour/types";
 
 export type TokenScores = Array<[string, number]>;
 export type TokenScoresList = TokenScores[];
@@ -29,12 +30,7 @@ export type RoundDisplayProps = {
   round: number;
 };
 
-export type GameTourIntro = {
-  steps: Array<{
-    text: string;
-    attachTo: { element: string; on: "top" | "bottom" | "left" | "right" };
-  }>;
-};
+export type GameTourIntro = StepTemplate[];
 
 export type BarRaceOptions = {
   heatmapLines?: number;

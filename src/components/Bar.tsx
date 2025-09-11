@@ -145,13 +145,14 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
         }
     }, [safeWidthPct, xZeroPct, flipped]);
 
-    const transition = { duration: transitionDurationSec, ease: "easeInOut" };
+    const transition = { duration: transitionDurationSec };
 
     const NameComponent = (
         <span className="font-black whitespace-nowrap px-2">{item.name}</span>
     );
+    const moveAlignmentClass = moveAlignment === "left" ? "text-left" : "text-right";
     const DescriptionComponent = displayDescription ? (
-        <span className="px-2 opacity-90 text-ellipsis whitespace-nowrap">{item.description}</span>
+        <span className={"px-2 opacity-90 text-ellipsis whitespace-nowrap " + moveAlignmentClass}>{item.description}</span>
     ) : null;
     const ScoreComponent = (
         <span className="font-semibold whitespace-nowrap px-2">{item.value.toFixed(1)}</span>

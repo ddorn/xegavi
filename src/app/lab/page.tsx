@@ -122,7 +122,6 @@ export default function LabPage() {
                 {selectedModelId ? (
                   <ModelHistoryChart
                     rounds={rounds}
-                    roundIndex={roundIndex}
                     onRoundChange={(idx) => setRoundIndex(idx)}
                     height={160}
                   />

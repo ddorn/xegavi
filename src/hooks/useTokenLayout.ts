@@ -38,7 +38,7 @@ export function useTokenLayout(tokenScores: TokenScores, numLines: number = 1, p
   const tokens = useMemo(() => tokenScores.map(([tok]) => tok), [tokenScores]);
   const lines = useMemo(() => computeMultilineTokenLayout(tokens, numLines, measure), [tokens, numLines, measure]);
 
-  const bgByIndex = useMemo(() => tokenScores.map(([_, score]) => tokenScoreToColor(score, isDark, maxAbsScore)), [tokenScores, isDark, maxAbsScore]);
+  const bgByIndex = useMemo(() => tokenScores.map(([, score]) => tokenScoreToColor(score, isDark, maxAbsScore)), [tokenScores, isDark, maxAbsScore]);
 
   return { containerRef, lines, tokens, bgByIndex };
 }

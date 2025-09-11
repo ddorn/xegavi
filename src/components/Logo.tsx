@@ -27,10 +27,10 @@ export function Logo({ model, size, className }: LogoProps) {
   const LogoComponent = LOGO_MAP[logoName];
   if (!LogoComponent) return null;
 
-  const alt = `${niceModelName(model)} logo ${size ?? '2rem'}`;
+  const alt = `${niceModelName(model)} logo`;
   return (
-    <div style={{ width: size ?? '2rem', height: size ?? '2rem' }} className={className}>
-      <LogoComponent />
+    <div style={{ width: size ?? '2rem', height: size ?? '2rem' }} className={className} aria-label={alt} role="img">
+      <LogoComponent/>
     </div>
   );
 }

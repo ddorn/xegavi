@@ -42,7 +42,7 @@ export default function Home() {
     playback: playbackState,
     setPlayback: setPlaybackState,
     setFocusedModelId,
-    game,
+    game: game ?? undefined,
   });
 
   const handleSelectedIdChange = useCallback((id: string | null, round: number) => {
@@ -57,11 +57,6 @@ export default function Home() {
   }, [playbackState.round, raceData?.augmented.length]);
 
   const leftRounds = focusedModelId && raceData ? raceData.roundsFor(focusedModelId) : [];
-
-  const getTokenScores = useCallback((id: string, round: number): TokenScoresList | null => {
-    return raceData ? raceData.tokenScoresAt(id, round) : null;
-  }, [raceData]);
-
 
   // --- Calendar State & Logic ---
   const monthLabel = selectedDateUTC ? new Intl.DateTimeFormat(undefined, { year: "numeric", month: "long", timeZone: "UTC" }).format(selectedDateUTC) : "";

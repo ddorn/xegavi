@@ -4,16 +4,6 @@ import type { MaxTokenNegativeEvent } from "./types";
 import type { TokenScoresList } from "@/lib/types";
 
 /**
- * Computes the ranking of models based on their best scores in a frame.
- * Returns an array of model IDs sorted by best score (highest first).
- */
-function computeRanks(frame: Record<string, { bestScore: number }>): string[] {
-  return Object.values(frame)
-    .sort((a, b) => b.bestScore - a.bestScore)
-    .map((it) => (it as any).model);
-}
-
-/**
  * Compares token scores between two rounds and finds the maximum change in a specific direction.
  * @param prevTokenScores Previous round's token scores
  * @param currTokenScores Current round's token scores

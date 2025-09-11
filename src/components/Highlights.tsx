@@ -1,11 +1,10 @@
 
 "use client";
 
-import { useMemo, useContext } from "react";
+import { useMemo } from "react";
 import type { RaceData } from "@/lib/barRace";
 import type { Event } from "@/lib/tour/types";
 import { computeEvents, selectHighlights, formatHighlight } from "@/lib/highlights";
-import { useColorScale } from "./ColorScaleContext";
 import { modelColor } from "@/lib/model-metadata";
 
 type HighlightsProps = {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 export type CoachmarkProps = {

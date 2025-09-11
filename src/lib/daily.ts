@@ -63,11 +63,10 @@ export function buildMonthGridMonday(date: Date): Array<Array<Date>> {
   const firstWeekdayMon0 = (first.getUTCDay() + 6) % 7; // 0 = Monday
 
   const grid: Array<Array<Date>> = [];
-  let current = new Date(first);
+  const current = new Date(first);
   current.setUTCDate(current.getUTCDate() - firstWeekdayMon0);
 
   // Calculate how many weeks we actually need
-  const lastWeekdayMon0 = (last.getUTCDay() + 6) % 7;
   const totalDays = firstWeekdayMon0 + last.getUTCDate();
   const weeksNeeded = Math.ceil(totalDays / 7);
 

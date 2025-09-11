@@ -6,7 +6,6 @@ import { anchorSelector, Anchors } from "../TourAnchor";
 
 function SynthesizeRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayProps) {
     const explainerRound = focusedModelId ? raceData.roundsFor(focusedModelId)[round] : null;
-    const bg = explainerRound?.color ?? "#888";
 
     if (!explainerRound) return <div>No data</div>;
 
@@ -47,22 +46,21 @@ function parseSynthesizeBenchmarkToDataset(raw: unknown): Dataset {
 }
 
 export const Synthesize: GameDisplay = {
-  name: "Synthesize",
-  pageTitle: "Challenge for LLMs: find a prefix that minimizes the cross-entropy across three texts.",
-  subtitle: (
-    <div>There are 3 rules: models have 30 attempts; prefixes are up to 10 tokens; and no words from the texts can be used.</div>
-  ),
-  roundDisplay: (props) => <SynthesizeRoundDisplay {...props} />,
-  barRaceData: (raw: unknown) => {
-    const ds = parseSynthesizeBenchmarkToDataset(raw);
-    return new RaceData(ds);
-  },
-    tourIntro: {
-        steps: [
-            {
-                text: "In Synthesize, a short prefix should help predict three unrelated texts at once.",
-                attachTo: { element: anchorSelector(Anchors.gameRules), on: "bottom" },
-            },
-        ],
+    name: "Synthesize",
+    pageTitle: "Challenge for LLMs: find a prefix that minimizes the cross-entropy across three texts.",
+    subtitle: (
+        <div>There are 3 rules: models have 30 attempts; prefixes are up to 10 tokens; and no words from the texts can be used.</div>
+    ),
+    roundDisplay: (props) => <SynthesizeRoundDisplay {...props} />,
+    barRaceData: (raw: unknown) => {
+        const ds = parseSynthesizeBenchmarkToDataset(raw);
+        return new RaceData(ds);
     },
+    tourIntro: [
+        {
+            id: "synthesize-intro-1",
+            text: "In Synthesize, a short prefix should help predict three unrelated texts at once.",
+            attachTo: { element: anchorSelector(Anchors.gameRules), on: "bottom" },
+        },
+    ],
 };

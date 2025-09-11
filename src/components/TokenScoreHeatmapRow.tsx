@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import type { TokenScores, TokenScoresList } from "@/lib/types";
 import { useTokenLayout } from "@/hooks/useTokenLayout";
 
