@@ -10,13 +10,14 @@ import { niceModelName } from "@/lib/model-metadata";
 import { eventToSteps, type StepsContext } from "@/lib/tour/eventToSteps";
 import { computeEvents, selectEvent } from "@/lib/highlights";
 import { Anchors, anchorSelector } from "@/components/TourAnchor";
+import { showKeyboardHints } from "../lib/utils";
 
 type TourManagerProps = {
-  raceData: RaceData | null;
-  playback: Playback;
-  setPlayback: (next: Playback | ((prev: Playback) => Playback)) => void;
-  setFocusedModelId: (id: string | null) => void;
-  game?: GameDisplay;
+    raceData: RaceData | null;
+    playback: Playback;
+    setPlayback: (next: Playback | ((prev: Playback) => Playback)) => void;
+    setFocusedModelId: (id: string | null) => void;
+    game?: GameDisplay;
 };
 
 function scrollIntoViewNicely(el: Element | null) {
@@ -37,11 +38,11 @@ function emphasizeTopRanks(positives: boolean, maxCount = 5) {
     const rankAttr = positives ? "data-rank-positive" : "data-rank-negative";
     const nodes = Array.from(container.querySelectorAll<HTMLSpanElement>(`[${rankAttr}]`));
     nodes
-      .filter((el) => {
-        const v = parseInt(el.getAttribute(rankAttr) || "0", 10);
-        return Number.isFinite(v) && v > 0 && v <= maxCount;
-      })
-      .forEach((el) => el.classList.add("tour-emph"));
+        .filter((el) => {
+            const v = parseInt(el.getAttribute(rankAttr) || "0", 10);
+            return Number.isFinite(v) && v > 0 && v <= maxCount;
+        })
+        .forEach((el) => el.classList.add("tour-emph"));
 }
 
 const defaultTourOptions: TourOptions = {
@@ -72,8 +73,10 @@ function buildOnboardingSteps(
     const stepsContext: StepsContext = { setPlayback, setFocusedModelId, clearEmphasis, emphasizeTopRanks };
     const eventSteps = selected ? eventToSteps(selected, stepsContext) : [];
 
+    const pointerHint = showKeyboardHints() ? "<br/><small>Use ← and → on your keyboard to navigate.</small>" : "";
+
     const steps: StepTemplate[] = [
-        { id: "intro", attachTo: { element: anchorSelector(Anchors.todaysGame), on: "bottom" }, text: `The Xent Labs Benchmark is composed of many games. Today's game is <i>${game.name}</i>.` },
+        { id: "intro", attachTo: { element: anchorSelector(Anchors.todaysGame), on: "bottom" }, text: `The Xent Labs Benchmark is composed of many games. Today's game is <i>${game.name}</i>.${pointerHint}` },
         ...(game.tourIntro ?? []),
         { id: "first-move", attachTo: { element: anchorSelector(Anchors.explainerMove), on: "top" }, text: `This is <b>${niceModelName(modelId)}</b>'s first's attempt. Is it good?`, onShow: [() => setFocusedModelId(modelId), () => setPlayback(p => ({ ...p, isPlaying: false, round: 0 }))] },
         { id: "tokens-positive", attachTo: { element: anchorSelector(Anchors.explainerTokens), on: "top" }, text: "Well, some tokens are made more likely by its move! They're shown in green.", onShow: [clearEmphasis, () => emphasizeTopRanks(true, 5)], onHide: [clearEmphasis] },
@@ -82,7 +85,7 @@ function buildOnboardingSteps(
         { id: "play-race", attachTo: { element: anchorSelector(Anchors.playButton), on: "top" }, text: "Let's see how it does!" },
         { id: "watch-leaderboard", attachTo: { element: anchorSelector(Anchors.barRace), on: "top" }, text: `How does ${niceModelName(modelId)} do? (I don't know, I'm just a tooltip...)`, onShow: [() => setPlayback(p => ({ ...p, round: 0, isPlaying: true }))], onHide: [() => setPlayback(p => ({ ...p, round: roundEndGenericSteps, isPlaying: false }))], advanceOn: { round: roundEndGenericSteps } },
         ...eventSteps,
-        { id: "wrap", attachTo: { element: anchorSelector(Anchors.explainerTokens), on: "top" }, text: "Wrapping up: these tokens reflect where moves help or hurt." },
+        { id: "wrap", attachTo: { element: anchorSelector(Anchors.explainerTokens), on: "top" }, text: "This is much greener now. Well done?" },
     ];
 
     return steps.map(s => ({
@@ -151,9 +154,10 @@ export function useTourManager({ raceData, playback, setPlayback, setFocusedMode
 
     const startHighlightTour = useCallback((highlight: Event) => {
         const stepsContext: StepsContext = { setPlayback, setFocusedModelId, clearEmphasis, emphasizeTopRanks };
-        const highlightSteps = eventToSteps(highlight, stepsContext).map(step => ({
-            ...step,
-            onShow: [() => setPlayback(p => ({ ...p, isPlaying: false, round: highlight.round })), ...(step.onShow || [])],
+        const highlightSteps = eventToSteps(highlight, stepsContext, true).map(s => ({
+            ...s,
+            onShow: [...(s.onShow || []), () => { if (s.advanceOn && 'round' in s.advanceOn) { currentStepAdvanceRef.current = s.advanceOn; } else { currentStepAdvanceRef.current = null; } }],
+            onHide: [...(s.onHide || []), () => { currentStepAdvanceRef.current = null; }]
         }));
 
         const tour = createTour(defaultTourOptions, highlightSteps);

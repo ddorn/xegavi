@@ -92,7 +92,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={tourManager.startOnboardingTour}
-                className="inline-flex items-center gap-2 px-4 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-shadow shadow-md"
+                className="inline-flex items-center gap-2 rounded-md cursor-pointer bg-blue-600 px-4 py-3 text-white shadow-md transition hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-95 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 <span>✨</span>
                 <span>What is this?</span>

@@ -46,7 +46,7 @@ export const Condense: GameDisplay = {
   name: "Condense",
     pageTitle: "Challenge for LLMs: find a surprise-minimizing prefix for a given text.",
     subtitle: (
-        <div>There are 3 rules: models have 30 attempts; prefixes are up to 10 tokens; and no words from the text can be used.</div>
+        <div>There are 3 rules: models have 30 attempts; prefixes are up to 10 tokens; and no words from the text can be reused.</div>
     ),
     roundDisplay: (props) => <CondenseRoundDisplay {...props} />,
     barRaceData: (raw: unknown) => {
