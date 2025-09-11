@@ -63,22 +63,6 @@ export const COMPANY_COLORS: Record<string, string> = {
   Unknown: "#888888",
 };
 
-// Map company to local logo in public/companieslogo
-const COMPANY_LOGO_NAMES: Record<string, string | null> = {
-  OpenAI: "openai",
-  Anthropic: "anthropic",
-  Google: "gemini", // using gemini icon for Google
-  xAI: "xai",
-  Meta: null,
-  Mistral: null,
-  Alibaba: null,
-  DeepSeek: "deepseek",
-  Reka: null,
-  Cohere: null,
-  Microsoft: null,
-  Unknown: null,
-};
-
 export function modelColor(model: string): string {
   // I don't use the per-model colors, it doesn't have a nice unity.
   // Maybe it's just a matter of picking the right colors?
@@ -89,15 +73,9 @@ export function modelColor(model: string): string {
   return COMPANY_COLORS[company] ?? COMPANY_COLORS["Unknown"];
 }
 
-export function modelLogoName(model: string): string | null {
-  const company = inferCompany(model);
-  return COMPANY_LOGO_NAMES[company] ?? null;
-}
-
-export function deriveModelPresentation(model: string): { niceModel: string; company: string; color: string; logoName: string | null } {
+export function deriveModelPresentation(model: string): { niceModel: string; company: string; color: string; } {
   const company = inferCompany(model);
   const niceModel = niceModelName(model);
   const color = modelColor(model);
-  const logoName = modelLogoName(model);
-  return { niceModel, company, color, logoName };
+  return { niceModel, company, color };
 }

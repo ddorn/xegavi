@@ -1,6 +1,6 @@
 node_modules
 .next
-zsh: command not found: /opt/cursor-bin/cursor-bin.AppImage
+next-env.d.ts
 dist
 .next-dev
 public/games

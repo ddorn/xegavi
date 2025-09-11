@@ -32,7 +32,7 @@ function Day({ date, entry, selectedDateUTC, onSelectDay, currentMonth, currentY
   const isSelected = selectedDateUTC && formatDateUTC(selectedDateUTC) === dateKey;
   const clickable = !!entry && !isFuture && inMonth;
 
-  const { niceModel, logoName } = entry ? deriveModelPresentation(entry.bestModel) : { niceModel: "", logoName: null };
+  const { niceModel } = entry ? deriveModelPresentation(entry.bestModel) : { niceModel: "" };
   const ariaLabel = entry ? `${dateKey}: ${entry.gameType}. Best: ${niceModel}. Score ${entry.bestScore}` : `${dateKey}`;
 
   return (
@@ -58,7 +58,7 @@ function Day({ date, entry, selectedDateUTC, onSelectDay, currentMonth, currentY
       </div>
       {!isFuture && (
         <div className="flex my-auto flex-col items-center justify-center gap-1 ">
-          {entry && logoName && (
+          {entry && (
             <Logo model={entry.bestModel} className="h-6 w-6 md:h-7 md:w-7" />
           )}
           {entry && (

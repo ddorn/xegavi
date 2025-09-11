@@ -10,7 +10,6 @@ export interface RoundModelWithBest extends RoundModel {
   niceModel: string;
   company: string;
   color: string;
-  logoSrc: string | null;
 }
 
 export type AugmentedFrame = Record<string, RoundModelWithBest>;
@@ -105,7 +104,7 @@ export class RaceData {
         description: useBestMove ? it.bestMove : it.move,
         value: useBestMove ? it.bestScore : it.score,
         color: it.color,
-        iconSrc: it.logoSrc ?? "",
+        iconSrc: it.model,
         company: it.company,
         tokenScoresList: useBestMove ? it.bestTokenScores : it.tokenScores,
       }))
@@ -149,7 +148,7 @@ export class RaceData {
 
         bestIdxByModel[model] = bestIdx;
 
-        const { niceModel, company, color, logoName } = deriveModelPresentation(model);
+        const { niceModel, company, color } = deriveModelPresentation(model);
 
         frame[model] = {
           ...current,
@@ -160,7 +159,6 @@ export class RaceData {
           niceModel,
           company,
           color,
-          logoSrc: logoName,
         };
       }
 
