@@ -4,7 +4,7 @@ import { pickTextColor } from "@/lib/colors";
 import { modelColor, niceModelName } from "@/lib/model-metadata";
 import type { TokenScoresList } from "@/lib/types";
 import { Fragment } from "react";
-import { Anchors, TourAnchor } from "./TourGuide";
+import { Anchors, TourAnchor } from "./TourAnchor";
 
 export type TokenSection = {
     label: string;

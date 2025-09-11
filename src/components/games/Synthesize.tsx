@@ -2,7 +2,7 @@ import type { Dataset, GameDisplay, RawGameResult, RoundDisplayProps } from "@/l
 import { RaceData } from "@/lib/barRace";
 import { MoveAndTokenSections } from "@/components/MoveAndTokenSections";
 import { parseBenchmarkToDataset, getRewardEvents, getElicitEvents } from "@/lib/dataset";
-import { anchorSelector, Anchors } from "../TourGuide";
+import { anchorSelector, Anchors } from "../TourAnchor";
 
 function SynthesizeRoundDisplay({ raceData, focusedModelId, round }: RoundDisplayProps) {
     const explainerRound = focusedModelId ? raceData.roundsFor(focusedModelId)[round] : null;

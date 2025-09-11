@@ -5,6 +5,7 @@ import React from "react";
 import { Logo } from "@/components/Logo";
 import { TokenScoreHeatmap } from "@/components/TokenScoreHeatmap";
 import { numberToEnglishOrdinal } from "@/lib/utils";
+import { ModelHistoryChart } from "./ModelHistoryChart";
 
 export interface GameDisplayWithDetailsProps {
   game: RoundModelWithBest[];
@@ -29,9 +30,7 @@ export function GameDisplayWithDetails({ game, subtitle = defaultSubtitle, class
   return (
     <div className={className}>
       <div className="flex items-center gap-3 sm:gap-4">
-        <div className="rounded-xl h-14 bg-white" >
-          <Logo model={last.model} />
-        </div>
+        <Logo model={last.model} size={32} />
         <div className="leading-tight">
           <h2 className="font-black text-2xl sm:text-3xl tabular-nums">
             {`${last.niceModel} gets to ${formatScore(bestScore)}`}
@@ -39,6 +38,10 @@ export function GameDisplayWithDetails({ game, subtitle = defaultSubtitle, class
           </h2>
           <p className="text-sm opacity-80">{subtitle}</p>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <ModelHistoryChart rounds={game} roundIndex={game.length - 1} />
       </div>
 
       <div className="mt-6">

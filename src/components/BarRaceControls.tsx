@@ -4,7 +4,7 @@ import React, { useEffect, useCallback } from "react";
 import type { Playback } from "@/lib/types";
 import { Slider } from "@/components/Slider";
 import { CycleButton } from "@/components/CycleButton";
-import { TourAnchor, Anchors } from "./TourGuide";
+import { TourAnchor, Anchors } from "./TourAnchor";
 
 export interface BarRaceControlsProps {
   playback: Playback;

@@ -1,6 +1,6 @@
 import type { Playback } from "@/lib/types";
 import type { Event, StepTemplate } from "./types";
-import { Anchors, anchorSelector } from "@/components/TourGuide";
+import { Anchors, anchorSelector } from "@/components/TourAnchor";
 import { niceModelName } from "../model-metadata";
 import { numberToEnglishOrdinal } from "../utils";
 

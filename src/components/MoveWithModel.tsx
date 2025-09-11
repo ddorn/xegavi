@@ -1,7 +1,7 @@
 import { Logo } from "@/components/Logo";
 import { pickTextColor } from "@/lib/colors";
 import { modelColor, niceModelName } from "@/lib/model-metadata";
-import { Anchors, TourAnchor } from "./TourGuide";
+import { Anchors, TourAnchor } from "./TourAnchor";
 
 export interface MoveWithModelProps {
     model: string;

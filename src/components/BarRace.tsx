@@ -28,7 +28,7 @@ const OVERLAY_MARGIN_EM = 3; // reserve ~2em at the right of the common overlay
 
 function HeatmapPrefix({ tokenScoresList, barHeight, widthPct = PREFIX_WIDTH_PCT, numLines = 1 }: { tokenScoresList: TokenScoresList; barHeight: number; widthPct?: number; numLines?: number; }) {
   return (
-    <div className="shrink-0" style={{ width: `${widthPct}%`, height: barHeight }}>
+    <div className="hidden sm:block shrink-0" style={{ width: `${widthPct}%`, height: barHeight }}>
       <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={numLines} />
     </div>
   );

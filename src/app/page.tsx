@@ -1,22 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { type Playback } from "@/lib/types";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { BarRace } from "@/components/BarRace";
-import type { AugmentedFrame, BarRaceFrame } from "@/lib/barRace";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BarRaceControls, usePlayback } from "@/components/BarRaceControls";
 import { ColorScaleProvider } from "@/components/ColorScaleContext";
 import type { TokenScoresList } from "@/lib/types";
 import { useDataset } from "@/hooks/useDataset";
 import { GameDisplayWithDetails } from "@/components/GameDisplayWithDetails";
-import { TourAnchor, anchorToProps, Anchors, useOnboardingTour } from "@/components/TourGuide";
+import { TourAnchor, Anchors } from "@/components/TourAnchor";
 import DailyCalendar from "@/components/DailyCalendar";
 import { useDailyGameSelection } from "@/hooks/useDailyGameSelection";
 import { ProgressBar } from "@/components/ProgressBar";
 import Highlights from "@/components/Highlights";
-import HighlightPlayer from "@/components/HighlightPlayer";
-import type { Event } from "@/lib/tour/types";
+import { useTourManager } from "@/hooks/useTourManager";
 
 
 export default function Home() {
@@ -39,9 +36,8 @@ export default function Home() {
   const stepDurationMs = Math.max(1, Math.round(1000 / (playbackState.speed || 1)) * 0.7);
 
   const [focusedModelId, setFocusedModelId] = useState<string | null>(null);
-  const [activeHighlight, setActiveHighlight] = useState<Event | null>(null);
 
-  const mainTour = useOnboardingTour({
+  const tourManager = useTourManager({
     raceData,
     playback: playbackState,
     setPlayback: setPlaybackState,
@@ -65,7 +61,6 @@ export default function Home() {
   const getTokenScores = useCallback((id: string, round: number): TokenScoresList | null => {
     return raceData ? raceData.tokenScoresAt(id, round) : null;
   }, [raceData]);
-
 
 
   // --- Calendar State & Logic ---
@@ -102,7 +97,7 @@ export default function Home() {
             <div className="mb-4 flex justify-center">
               <button
                 type="button"
-                onClick={() => mainTour?.start()}
+                onClick={tourManager.startOnboardingTour}
                 className="inline-flex items-center gap-2 px-4 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-shadow shadow-md"
               >
                 <span>✨</span>
@@ -117,12 +112,6 @@ export default function Home() {
                 {game.roundDisplay({ raceData, focusedModelId, round: safeRound })}
               </div>
 
-              <HighlightPlayer
-                highlight={activeHighlight}
-                onDone={() => setActiveHighlight(null)}
-                setPlayback={setPlaybackState}
-                setFocusedModelId={setFocusedModelId}
-              />
               <div className="flex gap-6 w-full">
                 <div className="flex-1">
 
@@ -147,7 +136,7 @@ export default function Home() {
                     />
                   </TourAnchor>
 
-                  <Highlights raceData={raceData} onHighlightSelect={setActiveHighlight} />
+                  <Highlights raceData={raceData} onHighlightSelect={tourManager.startHighlightTour} />
                 </div>
 
               </div>
