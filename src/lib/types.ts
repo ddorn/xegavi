@@ -22,8 +22,6 @@ export const DatasetSchema = z.object({
 });
 export type Dataset = z.infer<typeof DatasetSchema>;
 
-export type HeatmapMode = "none" | "prefix" | "full" | "bottomStripe" | "overlayAligned";
-
 export type RoundDisplayProps = {
   raceData: RaceData;
   focusedModelId: string | null;

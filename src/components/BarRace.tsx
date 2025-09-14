@@ -5,8 +5,6 @@ import type { BarRaceFrame } from "@/lib/barRace";
 import { Bar } from "@/components/Bar";
 import { Logo } from "@/components/Logo";
 import { motion } from "motion/react";
-import { TokenScoreHeatmapRow } from "@/components/TokenScoreHeatmapRow";
-import type { HeatmapMode, TokenScoresList } from "@/lib/types";
 import { useTheme } from "next-themes";
 
 export interface BarRaceProps {
@@ -15,40 +13,14 @@ export interface BarRaceProps {
   barHeight?: number;
   transitionDurationSec?: number;
   onSelectedIdChange?: (id: string | null, round: number) => void;
-  heatmapMode?: HeatmapMode;
+  showHeatmap?: boolean;
   selectedId?: string | null;
   heatmapLines?: number;
-  displayDescription?: boolean;
+  showDescription?: boolean;
   moveAlignment?: "left" | "right";
 }
 
 const NEGATIVE_WIDTH_PCT = 30;
-const PREFIX_WIDTH_PCT = 30;
-const OVERLAY_MARGIN_EM = 3; // reserve ~2em at the right of the common overlay
-
-function HeatmapPrefix({ tokenScoresList, barHeight, widthPct = PREFIX_WIDTH_PCT, numLines = 1 }: { tokenScoresList: TokenScoresList; barHeight: number; widthPct?: number; numLines?: number; }) {
-  return (
-    <div className="hidden sm:block shrink-0" style={{ width: `${widthPct}%`, height: barHeight }}>
-      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={numLines} />
-    </div>
-  );
-}
-
-function HeatmapOverlay({ tokenScoresList, numLines = 1 }: { tokenScoresList: TokenScoresList; numLines?: number; }) {
-  return (
-    <div className="absolute inset-0 z-0 pointer-events-none">
-      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={numLines} />
-    </div>
-  );
-}
-
-function HeatmapFooter({ tokenScoresList, height = 8, numLines = 1 }: { tokenScoresList: TokenScoresList; height?: number; numLines?: number; }) {
-  return (
-    <div className="absolute left-0 right-0 bottom-0" style={{ height }}>
-      <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={numLines} />
-    </div>
-  );
-}
 
 /**
  * A BarRace component that supports positive and negative values.
@@ -63,7 +35,7 @@ function HeatmapFooter({ tokenScoresList, height = 8, numLines = 1 }: { tokenSco
  * This component calculates the layout (`widthPct`, `xZeroPct`, `flipped`) and passes
  * it to individual `Bar` components for rendering.
  */
-export function BarRace({ frames, round, barHeight = 24, transitionDurationSec = 0.6, onSelectedIdChange, heatmapMode = "none", selectedId, heatmapLines = 1, displayDescription = false, moveAlignment = "left" }: BarRaceProps) {
+export function BarRace({ frames, round, barHeight = 24, transitionDurationSec = 0.6, onSelectedIdChange, showHeatmap = false, selectedId, heatmapLines = 1, showDescription = false, moveAlignment = "left" }: BarRaceProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const nRounds = frames.length;
@@ -91,24 +63,6 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
 
   const numRows = idsSortedByValue.length;
   const containerHeight = Math.max(0, numRows * barHeight + Math.max(0, numRows - 1) * rowGapPx);
-
-  // Compute visible ids and their base fill width percentages
-  const visibleIds = useMemo(() => idsSortedByValue, [idsSortedByValue]);
-  const baseWidthPctById = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const id of visibleIds) {
-      const it = currentFrameItems.get(id);
-      map[id] = it && maxValue > 0 ? (it.value / maxValue) * 100 : 0;
-    }
-    return map;
-  }, [visibleIds, currentFrameItems, maxValue]);
-
-  // Minimum visible fill percent
-  const minFillPct = useMemo(() => {
-    const vals = Object.values(baseWidthPctById);
-    if (vals.length === 0) return 0;
-    return Math.max(0, Math.min(...vals));
-  }, [baseWidthPctById]);
 
   return (
     <div
@@ -156,39 +110,6 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
             widthPct = maxValue > 0 ? (it.value / maxValue) * 100 : 0;
           }
 
-          const tokenScoresList = it.tokenScoresList ?? null;
-
-          let slots: { prefix?: ReactNode; overlay?: ReactNode; footer?: ReactNode; } | undefined;
-          if (tokenScoresList) {
-            if (heatmapMode === "prefix") {
-              slots = { prefix: <HeatmapPrefix tokenScoresList={tokenScoresList} barHeight={barHeight} numLines={heatmapLines} /> };
-            } else if (heatmapMode === "full") {
-              slots = { overlay: <HeatmapOverlay tokenScoresList={tokenScoresList} numLines={heatmapLines} /> };
-            } else if (heatmapMode === "bottomStripe") {
-              slots = { footer: <HeatmapFooter tokenScoresList={tokenScoresList} numLines={heatmapLines} /> };
-            } else if (heatmapMode === "overlayAligned") {
-              // For each bar, use overlay width relative to its fill so absolute width equals minFillPct of the stage
-              const overlayPctOfFill = widthPct > 0 ? Math.min(100, (minFillPct / widthPct) * 100) : 0;
-              const overlay = (
-                <motion.div
-                  className="absolute inset-y-0 left-0 z-0 pointer-events-none"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${overlayPctOfFill}%` }}
-                  transition={{ duration: transitionDurationSec }}
-                >
-                  <div style={{ width: `calc(100% - ${OVERLAY_MARGIN_EM}em)`, height: "100%" }}>
-                    <TokenScoreHeatmapRow tokenScoresList={tokenScoresList} numLines={heatmapLines} />
-                  </div>
-                </motion.div>
-              );
-              slots = { overlay };
-            }
-          }
-
-          const solidBackground = heatmapMode !== "full"; // still show company color for overlayAligned
-          const commonText = isDark ? "#fff" : "#000";
-          const textColorOverride = heatmapMode === "full" || heatmapMode === "overlayAligned" ? commonText : undefined;
-
           const isSelected = id === selectedId;
 
           return (
@@ -214,13 +135,11 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
                   xZeroPct={xZeroPct}
                   flipped={flipped}
                   barHeight={barHeight}
-                  logo={<Logo model={it.id} size={barHeight} />}
                   transitionDurationSec={transitionDurationSec}
-                  solidBackground={solidBackground}
-                  textColorOverride={textColorOverride}
-                  slots={slots}
-                  displayDescription={displayDescription}
+                  showDescription={showDescription}
                   moveAlignment={moveAlignment}
+                  showHeatmap={showHeatmap}
+                  heatmapLines={heatmapLines}
                 />
                 {isSelected && (
                   <div className="pointer-events-none absolute top-0 left-0 h-full w-full ring-2 ring-black dark:ring-white ring-offset-2 ring-offset-white dark:ring-offset-black" />

@@ -6,6 +6,9 @@ import type { BarRaceItem } from "@/lib/barRace";
 import { Anchors, anchorToProps } from "./TourAnchor";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Measure } from "./Measure";
+import type { TokenScoresList } from "@/lib/types";
+import { TokenScoreHeatmapRow } from "./TokenScoreHeatmapRow";
+import { Logo } from "./Logo";
 
 type ComponentName = "name" | "description" | "score";
 
@@ -85,6 +88,7 @@ function distributeContent(componentWidths: ComponentWidths, segmentWidths: Segm
 
 }
 
+const PREFIX_WIDTH_PCT = 30;
 
 export interface BarProps {
     item: BarRaceItem;
@@ -92,18 +96,11 @@ export interface BarProps {
     xZeroPct?: number;
     flipped?: boolean;
     barHeight: number;
-    logo?: React.ReactNode;
-    onClick?: () => void;
     transitionDurationSec?: number;
-    textColorOverride?: string;
-    solidBackground?: boolean; // when false, do not apply item.color background (used by full overlay mode)
-    slots?: {
-        prefix?: React.ReactNode; // placed between logo and bar fill, self-sized
-        overlay?: React.ReactNode; // absolute overlay covering the bar fill
-        footer?: React.ReactNode; // absolute bottom stripe inside the bar fill
-    };
-    displayDescription?: boolean;
+    showDescription?: boolean;
     moveAlignment?: "left" | "right";
+    showHeatmap?: boolean;
+    heatmapLines?: number;
 }
 
 /**
@@ -111,7 +108,7 @@ export interface BarProps {
  * The colored bar rectangle is positioned absolutely with its base at `xZeroPct` and width `widthPct`.
  * `flipped` reverses the internal layout (score vs. name) for negative values.
  */
-export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, logo, onClick, transitionDurationSec = 1, textColorOverride, solidBackground = true, slots, displayDescription = false, moveAlignment = "left" }: BarProps) {
+export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, transitionDurationSec = 1, showDescription = false, moveAlignment = "left", showHeatmap, heatmapLines }: BarProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
 
@@ -130,7 +127,7 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
         return () => observer.disconnect();
     }, []);
 
-    const computedTextColor = textColorOverride ?? pickTextColor(item.color);
+    const computedTextColor = pickTextColor(item.color);
     const safeWidthPct = Math.max(0, Math.min(100, widthPct));
 
     const { leftSpacerPct, barAreaPct, rightSpacerPct } = useMemo(() => {
@@ -152,7 +149,7 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
         <span className="font-black whitespace-nowrap px-2">{item.name}</span>
     );
     const moveAlignmentClass = moveAlignment === "left" ? "text-left" : "text-right";
-    const DescriptionComponent = displayDescription ? (
+    const DescriptionComponent = showDescription ? (
         <span className={"px-2 opacity-90 text-ellipsis whitespace-nowrap " + moveAlignmentClass}>{item.description}</span>
     ) : null;
     const ScoreComponent = (
@@ -169,12 +166,15 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
         <div
             className="flex items-center gap-2 w-full"
             style={{ height: barHeight }}
-            onClick={onClick}
             {...anchorToProps(Anchors.barForModel(item.id))}
         >
-            {slots?.prefix}
+            {(item.tokenScoresList && showHeatmap) && (
+                <div className="hidden sm:block shrink-0" style={{ width: `${PREFIX_WIDTH_PCT}%`, height: barHeight }}>
+                    <TokenScoreHeatmapRow tokenScoresList={item.tokenScoresList} numLines={heatmapLines} />
+                </div>
+            )}
             <div style={{ width: barHeight, height: barHeight }} className="shrink-0 flex items-center justify-center">
-                {logo}
+                <Logo model={item.id} size={barHeight} />
             </div>
             <div className="grow min-w-0 flex" style={{ height: barHeight }} ref={containerRef}>
                 <Measure elements={[NameComponent, DescriptionComponent, ScoreComponent].filter(Boolean) as React.ReactElement[]}>
@@ -182,8 +182,8 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
 
                         const [nameDim, descDim, scoreDim] = [
                             dims[0],
-                            displayDescription ? dims[1] : { width: 0, height: 0 },
-                            dims[displayDescription ? 2 : 1],
+                            showDescription ? dims[1] : { width: 0, height: 0 },
+                            dims[showDescription ? 2 : 1],
                         ];
 
                         const layout = distributeContent(
@@ -203,7 +203,6 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
                                     animate={{ width: `${leftSpacerPct}%` }}
                                     transition={transition}
                                     className="flex items-center justify-end"
-                                    style={{ color: textColorOverride ?? "inherit" }}
                                 >
                                     {layout.left.map((name) => componentMap[name])}
                                 </motion.div>
@@ -213,20 +212,17 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
                                     transition={transition}
                                     className="relative overflow-hidden flex items-center justify-between"
                                     style={{
-                                        ...(solidBackground && { backgroundColor: item.color }),
+                                        backgroundColor: item.color,
                                         color: computedTextColor,
                                     }}
                                 >
-                                    {slots?.overlay}
                                     {layout.inside.map((name) => componentMap[name])}
-                                    {slots?.footer}
                                 </motion.div>
                                 <motion.div
                                     initial={{ width: flipped ? `${100 - xZeroPct}%` : "100%" }}
                                     animate={{ width: `${rightSpacerPct}%` }}
                                     transition={transition}
                                     className="flex items-center justify-start"
-                                    style={{ color: textColorOverride ?? "inherit" }}
                                 >
                                     {layout.right.map((name) => componentMap[name])}
                                 </motion.div>
