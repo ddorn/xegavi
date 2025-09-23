@@ -143,8 +143,9 @@ export default function LabPage() {
                   frames={raceData.buildFrames()}
                   round={roundIndex}
                   selectedId={selectedModelId}
-                  heatmapMode="prefix"
                   onSelectedIdChange={handleBarRaceSelection}
+                  showDescription={game?.barRaceOptions?.displayMove ? "left" : "none"}
+                  heatmapLines={game?.barRaceOptions?.heatmapLines}
                 />
               </section>
 

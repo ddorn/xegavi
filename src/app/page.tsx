@@ -64,13 +64,22 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {isLoading && <ProgressBar />}
-      <ArchiveBanner selectedDateUTC={selectedDateUTC} selectDate={selectDate} />
       <div className="px-2 xs:px-6 sm:p-10 py-6">
         <div className="max-w-5xl mx-auto flex flex-col gap-6">
           <header className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ThemeToggle />
             </div>
+            {raceData && game && (
+              <button
+                type="button"
+                onClick={tourManager.startOnboardingTour}
+                className="inline-flex items-center gap-2 rounded-md cursor-pointer bg-blue-600 px-4 py-3 text-white shadow-md transition hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-95 dark:bg-blue-500 dark:hover:bg-blue-600"
+              >
+                <span>✨</span>
+                <span>What is this?</span>
+              </button>
+            )}
           </header>
           {error && (
             <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>
@@ -91,17 +100,6 @@ export default function Home() {
 
           {raceData && game && (
             <ColorScaleProvider maxAbsScore={raceData.maxAbsScore * 0.6}>
-              <div className="mb-4 flex justify-center">
-                <button
-                  type="button"
-                  onClick={tourManager.startOnboardingTour}
-                  className="inline-flex items-center gap-2 rounded-md cursor-pointer bg-blue-600 px-4 py-3 text-white shadow-md transition hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-95 dark:bg-blue-500 dark:hover:bg-blue-600"
-                >
-                  <span>✨</span>
-                  <span>What is this?</span>
-                </button>
-              </div>
-
               <h2 className="text-2xl font-black #mb-2 #text-center">See how models are doing on today&apos;s game ⬇</h2>
 
               <div className="flex flex-col gap-3 items-start">
@@ -125,11 +123,9 @@ export default function Home() {
                         round={playbackState.round}
                         transitionDurationSec={stepDurationMs * 0.8 / 1000}
                         onSelectedIdChange={handleSelectedIdChange}
-                        heatmapMode="prefix"
                         selectedId={focusedModelId}
                         heatmapLines={game.barRaceOptions?.heatmapLines}
-                        displayDescription={game.barRaceOptions?.displayMove}
-                        moveAlignment={game.barRaceOptions?.moveAlignment}
+                        showDescription={game.barRaceOptions?.displayMove ? "left" : "none"}
                       />
                     </TourAnchor>
 

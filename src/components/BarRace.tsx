@@ -16,8 +16,7 @@ export interface BarRaceProps {
   showHeatmap?: boolean;
   selectedId?: string | null;
   heatmapLines?: number;
-  showDescription?: boolean;
-  moveAlignment?: "left" | "right";
+  showDescription?: "none" | "left" | "right";
 }
 
 const NEGATIVE_WIDTH_PCT = 30;
@@ -35,7 +34,7 @@ const NEGATIVE_WIDTH_PCT = 30;
  * This component calculates the layout (`widthPct`, `xZeroPct`, `flipped`) and passes
  * it to individual `Bar` components for rendering.
  */
-export function BarRace({ frames, round, barHeight = 24, transitionDurationSec = 0.6, onSelectedIdChange, showHeatmap = false, selectedId, heatmapLines = 1, showDescription = false, moveAlignment = "left" }: BarRaceProps) {
+export function BarRace({ frames, round, barHeight = 24, transitionDurationSec = 0.6, onSelectedIdChange, showHeatmap = false, selectedId, heatmapLines = 1, showDescription = "none" }: BarRaceProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const nRounds = frames.length;
@@ -137,7 +136,6 @@ export function BarRace({ frames, round, barHeight = 24, transitionDurationSec =
                   barHeight={barHeight}
                   transitionDurationSec={transitionDurationSec}
                   showDescription={showDescription}
-                  moveAlignment={moveAlignment}
                   showHeatmap={showHeatmap}
                   heatmapLines={heatmapLines}
                 />

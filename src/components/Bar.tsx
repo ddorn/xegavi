@@ -6,7 +6,6 @@ import type { BarRaceItem } from "@/lib/barRace";
 import { Anchors, anchorToProps } from "./TourAnchor";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Measure } from "./Measure";
-import type { TokenScoresList } from "@/lib/types";
 import { TokenScoreHeatmapRow } from "./TokenScoreHeatmapRow";
 import { Logo } from "./Logo";
 
@@ -97,8 +96,7 @@ export interface BarProps {
     flipped?: boolean;
     barHeight: number;
     transitionDurationSec?: number;
-    showDescription?: boolean;
-    moveAlignment?: "left" | "right";
+    showDescription?: "none" | "left" | "right";
     showHeatmap?: boolean;
     heatmapLines?: number;
 }
@@ -108,7 +106,7 @@ export interface BarProps {
  * The colored bar rectangle is positioned absolutely with its base at `xZeroPct` and width `widthPct`.
  * `flipped` reverses the internal layout (score vs. name) for negative values.
  */
-export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, transitionDurationSec = 1, showDescription = false, moveAlignment = "left", showHeatmap, heatmapLines }: BarProps) {
+export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, transitionDurationSec = 1, showDescription = "none", showHeatmap, heatmapLines }: BarProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
 
@@ -148,8 +146,8 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
     const NameComponent = (
         <span className="font-black whitespace-nowrap px-2">{item.name}</span>
     );
-    const moveAlignmentClass = moveAlignment === "left" ? "text-left" : "text-right";
-    const DescriptionComponent = showDescription ? (
+    const moveAlignmentClass = showDescription === "left" ? "text-left" : "text-right";
+    const DescriptionComponent = showDescription !== "none" ? (
         <span className={"px-2 opacity-90 text-ellipsis whitespace-nowrap " + moveAlignmentClass}>{item.description}</span>
     ) : null;
     const ScoreComponent = (
@@ -180,10 +178,11 @@ export function Bar({ item, widthPct, xZeroPct = 0, flipped = false, barHeight, 
                 <Measure elements={[NameComponent, DescriptionComponent, ScoreComponent].filter(Boolean) as React.ReactElement[]}>
                     {(dims) => {
 
+                        const hasDescription = showDescription !== "none";
                         const [nameDim, descDim, scoreDim] = [
                             dims[0],
-                            showDescription ? dims[1] : { width: 0, height: 0 },
-                            dims[showDescription ? 2 : 1],
+                            hasDescription ? dims[1] : { width: 0, height: 0 },
+                            dims[hasDescription ? 2 : 1],
                         ];
 
                         const layout = distributeContent(
