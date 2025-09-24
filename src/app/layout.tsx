@@ -26,6 +26,13 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          defer
+          src="https://umami.therandom.space/script.js"
+          data-website-id="9201a6e4-683a-45f7-b504-7b6b5475aff6"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
