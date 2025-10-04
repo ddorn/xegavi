@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 import type { BarRaceFrame } from "@/lib/barRace";
 import { Bar } from "@/components/Bar";
-import { Logo } from "@/components/Logo";
 import { motion } from "motion/react";
 import { useTheme } from "next-themes";
 
@@ -35,8 +34,6 @@ const NEGATIVE_WIDTH_PCT = 30;
  * it to individual `Bar` components for rendering.
  */
 export function BarRace({ frames, round, barHeight = 24, transitionDurationSec = 0.6, onSelectedIdChange, showHeatmap = false, selectedId, heatmapLines = 1, showDescription = "none" }: BarRaceProps) {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
   const nRounds = frames.length;
   const maxRound = Math.max(0, nRounds - 1);
   const safeRound = Math.min(Math.max(0, round), maxRound);

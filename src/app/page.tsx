@@ -13,7 +13,6 @@ import { useDailyGameSelection } from "@/hooks/useDailyGameSelection";
 import { ProgressBar } from "@/components/ProgressBar";
 import Highlights from "@/components/Highlights";
 import { useTourManager } from "@/hooks/useTourManager";
-import { ArchiveBanner } from "@/components/ArchiveBanner";
 
 
 export default function Home() {
